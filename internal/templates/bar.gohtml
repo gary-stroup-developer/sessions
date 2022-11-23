@@ -1,0 +1,13 @@
+{{template "base"}}
+
+<h1>Welcome to the bar. What can I get you to drink?</h1>
+
+{{if .First}}
+USER NAME {{.UserName}}<br>
+PASSWORD {{.Password}}<br>
+FIRST {{.First}}<br>
+LAST {{.LAST}}
+{{end}}
+
+{{template "footer"}}
+
