@@ -46,3 +46,27 @@ func logUserIn(w http.ResponseWriter, un string, p string) (models.UserInfo, err
 
 	return models.UserInfo{UserName: u.UserName, First: u.First, Last: u.Last}, nil
 }
+
+// func getAllEntries() {
+// 	sqlStatement := `select * from users`
+// 	rows, err := Repo.DB.Query(sqlStatement)
+
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	defer rows.Close()
+
+// 	for rows.Next() {
+// 		var (
+// 			id   int64
+// 			name string
+// 		)
+// 		if err := rows.Scan(&id, &name); err != nil {
+// 			log.Fatal(err)
+// 		}
+// 		log.Printf("id %d name is %s\n", id, name)
+// 	}
+// 	if !rows.NextResultSet() {
+// 		log.Fatalf("expected more result sets: %v", rows.Err())
+// 	}
+// }

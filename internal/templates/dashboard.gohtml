@@ -1,12 +1,10 @@
 {{template "base"}}
 
-<h1>Welcome to the bar. What can I get you to drink?</h1>
-
-{{if .First}}
-USER NAME {{.UserName}}<br>
-FIRST {{.First}}<br>
-LAST {{.Last}}<br>
-{{end}}
+<div class="container">
+    <h2 class="mb-4">{{.First}}</h2>
+    <p class="mb-3">Total Workouts for 2022: 65</p>
+    <p>Let's break the numbers down by exercise</p>
+</div>
 
 {{template "footer"}}
 
