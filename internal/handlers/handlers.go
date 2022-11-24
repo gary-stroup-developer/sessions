@@ -16,12 +16,14 @@ import (
 type Repository struct {
 	Template *template.Template
 	DB       *sql.DB
+	DbUsers  map[string]models.User // session ID, user
 }
 
 func NewRepo(db *sql.DB, tpl *template.Template) *Repository {
 	return &Repository{
 		Template: tpl,
 		DB:       db,
+		DbUsers:  make(map[string]models.User),
 	}
 }
 
@@ -32,28 +34,29 @@ func SetRepo(r *Repository) {
 }
 
 func Index(w http.ResponseWriter, req *http.Request) {
-	u := sessions.GetUser(w, req)
 
-	Repo.Template.ExecuteTemplate(w, "index.gohtml", u)
+	Repo.Template.ExecuteTemplate(w, "index.gohtml", nil)
 }
 
 func Bar(w http.ResponseWriter, req *http.Request) {
-	u := sessions.GetUser(w, req)
 
-	if !sessions.AlreadyLoggedIn(req) {
+	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}
+
+	u := sessions.GetUser(req, Repo.DbUsers)
 
 	Repo.Template.ExecuteTemplate(w, "bar.gohtml", u)
 }
 
 func Signup(w http.ResponseWriter, req *http.Request) {
-	if sessions.AlreadyLoggedIn(req) {
+	if sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}
 
+	//initialize a user variable to store user info received from DB query
 	var u models.User
 
 	if req.Method == http.MethodPost {
@@ -62,12 +65,13 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 		f := req.FormValue("firstname")
 		l := req.FormValue("lastname")
 
+		//create a session cookie
 		sID, _ := uuid.NewV4()
 		c := &http.Cookie{
 			Name:  "session",
 			Value: sID.String(),
 		}
-
+		//store cookie in browser
 		http.SetCookie(w, c)
 
 		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
@@ -77,21 +81,22 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		u = models.User{UserName: un, Password: bs, First: f, Last: l}
-
-		//db := driver.ConnectDB()
-
 		sqlStatement := `
 		insert into users (username, password, firstname, lastname)
 		values ($1, $2, $3, $4)
 		returning firstname`
 		fname := ""
-		//db := driver.ConnectDB()
+
 		err = Repo.DB.QueryRow(sqlStatement, un, bs, f, l).Scan(&fname)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		// defer db.Close()
+
+		//store form data in user struct since we know password encryption & DB exection were successful
+		u = models.User{UserName: un, Password: bs, First: f, Last: l}
+		//bind session cookie with user
+		Repo.DbUsers[c.Value] = u
+
 		fmt.Println("New record ID is:", fname)
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
@@ -101,34 +106,44 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 }
 
 func Login(w http.ResponseWriter, req *http.Request) {
-	if sessions.AlreadyLoggedIn(req) {
+	if sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}
+
 	if req.Method == http.MethodPost {
+		//get the form values
 		un := req.FormValue("username")
 		p := req.FormValue("password")
 
-		u, ok := sessions.DbUsers[un]
-		if !ok {
-			http.Error(w, "username and/or password do not match", http.StatusForbidden)
+		var u models.User
+
+		query := fmt.Sprintf(`select * from users where username = %s;`, un)
+		log.Println(query)
+		//make a request to get user info from DB
+		err := Repo.DB.QueryRow(query).Scan(&u)
+		if err != nil {
+			http.Error(w, "user not found", http.StatusBadRequest)
 			return
 		}
-
-		err := bcrypt.CompareHashAndPassword(u.Password, []byte(p))
+		err = bcrypt.CompareHashAndPassword(u.Password, []byte(p))
 
 		if err != nil {
 			http.Error(w, "username and/or password do not match", http.StatusForbidden)
 			return
 		}
 
+		//create a cookie
 		sID, _ := uuid.NewV4()
 		c := &http.Cookie{
 			Name:  "session",
 			Value: sID.String(),
 		}
+
 		http.SetCookie(w, c)
-		sessions.DbSessions[c.Value] = un
+
+		Repo.DbUsers[c.Value] = u
+
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}

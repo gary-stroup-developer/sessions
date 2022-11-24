@@ -3,42 +3,28 @@ package sessions
 import (
 	"gary-stroup-developer/sessions/internal/models"
 	"net/http"
-
-	"github.com/gofrs/uuid"
 )
 
 var DbUsers = map[string]models.User{} // user ID, user
 var DbSessions = map[string]string{}   // session ID, user ID
 
-func GetUser(w http.ResponseWriter, req *http.Request) models.User {
+func GetUser(req *http.Request, u map[string]models.User) models.User {
 	c, err := req.Cookie("session")
 
 	if err != nil {
-		sID, _ := uuid.NewV4()
-		c = &http.Cookie{
-			Name:  "session",
-			Value: sID.String(),
-		}
-	}
-	http.SetCookie(w, c)
-
-	// if user exists already, get user
-	var u models.User
-
-	if un, ok := DbSessions[c.Value]; ok {
-		u = DbUsers[un]
+		return models.User{}
 	}
 
-	return u
+	return u[c.Value]
 }
 
-func AlreadyLoggedIn(req *http.Request) bool {
+func AlreadyLoggedIn(req *http.Request, u map[string]models.User) bool {
 	c, err := req.Cookie("session")
 	if err != nil {
 		return false
 	}
 
-	un := DbSessions[c.Value]
-	_, ok := DbUsers[un]
-	return ok
+	user := u[c.Value]
+	return user.UserName != ""
+
 }
