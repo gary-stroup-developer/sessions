@@ -5,9 +5,6 @@ import (
 	"net/http"
 )
 
-var DbUsers = map[string]models.User{} // user ID, user
-var DbSessions = map[string]string{}   // session ID, user ID
-
 func GetUser(req *http.Request, u map[string]models.User) models.User {
 	c, err := req.Cookie("session")
 

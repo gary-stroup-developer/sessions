@@ -11,6 +11,10 @@ import (
 
 	"github.com/gofrs/uuid"
 	"golang.org/x/crypto/bcrypt"
+
+	_ "github.com/jackc/pgconn"
+	_ "github.com/jackc/pgx/v4"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 type Repository struct {
@@ -116,16 +120,27 @@ func Login(w http.ResponseWriter, req *http.Request) {
 		un := req.FormValue("username")
 		p := req.FormValue("password")
 
+		//initialize user struct and individual fields that will accept values from query result
 		var u models.User
+		var username string
+		var pass string
+		var first string
+		var last string
 
-		query := fmt.Sprintf(`select * from users where username = %s;`, un)
-		log.Println(query)
 		//make a request to get user info from DB
-		err := Repo.DB.QueryRow(query).Scan(&u)
+		err := Repo.DB.QueryRow(`select * from users where username=$1`, un).Scan(&username, &pass, &first, &last)
 		if err != nil {
 			http.Error(w, "user not found", http.StatusBadRequest)
 			return
 		}
+
+		//store query result into user struct u
+		u.UserName = username
+		u.Password = []byte(pass)
+		u.First = first
+		u.Last = last
+
+		//check if returned password matches the password submitted by form
 		err = bcrypt.CompareHashAndPassword(u.Password, []byte(p))
 
 		if err != nil {
