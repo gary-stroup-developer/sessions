@@ -5,17 +5,18 @@ import (
 	"net/http"
 )
 
-func GetUser(req *http.Request, u map[string]models.User) models.User {
+func GetUser(req *http.Request, u map[string]models.UserInfo) models.UserInfo {
 	c, err := req.Cookie("session")
 
 	if err != nil {
-		return models.User{}
+		return models.UserInfo{}
 	}
 
 	return u[c.Value]
+
 }
 
-func AlreadyLoggedIn(req *http.Request, u map[string]models.User) bool {
+func AlreadyLoggedIn(req *http.Request, u map[string]models.UserInfo) bool {
 	c, err := req.Cookie("session")
 	if err != nil {
 		return false

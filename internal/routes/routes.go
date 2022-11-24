@@ -7,7 +7,7 @@ import (
 
 func Routes(r *http.ServeMux) {
 	r.HandleFunc("/", handlers.Index)
-	r.HandleFunc("/bar", handlers.Bar)
+	r.HandleFunc("/dashboard", handlers.Dashboard)
 	r.HandleFunc("/signup", handlers.Signup)
 	r.HandleFunc("/signin", handlers.Login)
 

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"database/sql"
-	"fmt"
 	"gary-stroup-developer/sessions/internal/models"
 	"gary-stroup-developer/sessions/internal/sessions"
 	"html/template"
@@ -20,14 +19,14 @@ import (
 type Repository struct {
 	Template *template.Template
 	DB       *sql.DB
-	DbUsers  map[string]models.User // session ID, user
+	DbUsers  map[string]models.UserInfo // session ID, user
 }
 
 func NewRepo(db *sql.DB, tpl *template.Template) *Repository {
 	return &Repository{
 		Template: tpl,
 		DB:       db,
-		DbUsers:  make(map[string]models.User),
+		DbUsers:  make(map[string]models.UserInfo),
 	}
 }
 
@@ -42,7 +41,7 @@ func Index(w http.ResponseWriter, req *http.Request) {
 	Repo.Template.ExecuteTemplate(w, "index.gohtml", nil)
 }
 
-func Bar(w http.ResponseWriter, req *http.Request) {
+func Dashboard(w http.ResponseWriter, req *http.Request) {
 
 	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
@@ -51,7 +50,7 @@ func Bar(w http.ResponseWriter, req *http.Request) {
 
 	u := sessions.GetUser(req, Repo.DbUsers)
 
-	Repo.Template.ExecuteTemplate(w, "bar.gohtml", u)
+	Repo.Template.ExecuteTemplate(w, "dashboard.gohtml", u)
 }
 
 func Signup(w http.ResponseWriter, req *http.Request) {
@@ -61,7 +60,7 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 	}
 
 	//initialize a user variable to store user info received from DB query
-	var u models.User
+	var u models.UserInfo
 
 	if req.Method == http.MethodPost {
 		un := req.FormValue("username")
@@ -85,28 +84,22 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		sqlStatement := `
-		insert into users (username, password, firstname, lastname)
-		values ($1, $2, $3, $4)
-		returning firstname`
-		fname := ""
+		//send user info to be stored in database
+		u, err = signUserUp(un, bs, f, l)
 
-		err = Repo.DB.QueryRow(sqlStatement, un, bs, f, l).Scan(&fname)
 		if err != nil {
-			log.Println(err.Error())
+			log.Fatalln(err)
+			return
 		}
 
-		//store form data in user struct since we know password encryption & DB exection were successful
-		u = models.User{UserName: un, Password: bs, First: f, Last: l}
 		//bind session cookie with user
 		Repo.DbUsers[c.Value] = u
 
-		fmt.Println("New record ID is:", fname)
-		http.Redirect(w, req, "/", http.StatusSeeOther)
+		http.Redirect(w, req, "/dashboard", http.StatusSeeOther)
 		return
 	}
 
-	Repo.Template.ExecuteTemplate(w, "signup.gohtml", u)
+	Repo.Template.ExecuteTemplate(w, "signup.gohtml", nil)
 }
 
 func Login(w http.ResponseWriter, req *http.Request) {
@@ -120,31 +113,10 @@ func Login(w http.ResponseWriter, req *http.Request) {
 		un := req.FormValue("username")
 		p := req.FormValue("password")
 
-		//initialize user struct and individual fields that will accept values from query result
-		var u models.User
-		var username string
-		var pass string
-		var first string
-		var last string
-
-		//make a request to get user info from DB
-		err := Repo.DB.QueryRow(`select * from users where username=$1`, un).Scan(&username, &pass, &first, &last)
-		if err != nil {
-			http.Error(w, "user not found", http.StatusBadRequest)
-			return
-		}
-
-		//store query result into user struct u
-		u.UserName = username
-		u.Password = []byte(pass)
-		u.First = first
-		u.Last = last
-
-		//check if returned password matches the password submitted by form
-		err = bcrypt.CompareHashAndPassword(u.Password, []byte(p))
+		u, err := logUserIn(w, un, p)
 
 		if err != nil {
-			http.Error(w, "username and/or password do not match", http.StatusForbidden)
+			log.Fatalln(err)
 			return
 		}
 
@@ -159,7 +131,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 
 		Repo.DbUsers[c.Value] = u
 
-		http.Redirect(w, req, "/", http.StatusSeeOther)
+		http.Redirect(w, req, "/dashboard", http.StatusSeeOther)
 		return
 	}
 

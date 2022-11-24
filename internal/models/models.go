@@ -6,3 +6,9 @@ type User struct {
 	First    string
 	Last     string
 }
+
+type UserInfo struct {
+	UserName string
+	First    string
+	Last     string
+}
