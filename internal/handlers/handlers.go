@@ -59,14 +59,28 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	//initialize a user variable to store user info received from DB query
-	var u models.UserInfo
-
 	if req.Method == http.MethodPost {
+		//get values submitted by form
 		un := req.FormValue("username")
 		p := req.FormValue("password")
 		f := req.FormValue("firstname")
 		l := req.FormValue("lastname")
+
+		//hash password submitted & check for errors
+		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
+
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		//send data to be inserted into database & check for error
+		u, err := signUserUp(un, bs, f, l)
+
+		if err != nil {
+			http.Error(w, "Uh oh. Something went wrong on our end. Try signing up again", http.StatusInternalServerError)
+			return
+		}
 
 		//create a session cookie
 		sID, _ := uuid.NewV4()
@@ -76,21 +90,6 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 		}
 		//store cookie in browser
 		http.SetCookie(w, c)
-
-		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
-
-		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-
-		//send user info to be stored in database
-		u, err = signUserUp(un, bs, f, l)
-
-		if err != nil {
-			log.Fatalln(err)
-			return
-		}
 
 		//bind session cookie with user
 		Repo.DbUsers[c.Value] = u
@@ -136,4 +135,51 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	}
 
 	Repo.Template.ExecuteTemplate(w, "login.gohtml", nil)
+}
+
+func SubmitWorkout(w http.ResponseWriter, req *http.Request) {
+	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+
+	if req.Method == http.MethodPost {
+		//parse th form data
+		req.ParseForm()
+
+		//parse each field into []Workout
+		wkout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"])
+
+		if err != nil {
+			http.Error(w, "workout not logged in bro!", http.StatusBadRequest)
+		}
+		log.Println(wkout)
+
+		//need to create function to insert wkout into database
+		// //send user info to be stored in database
+		// err = signUserUp(data []Workout)
+
+		// if err != nil {
+		// 	log.Fatalln(err)
+		// 	return
+		// }
+
+		http.Redirect(w, req, "/dashboard", http.StatusSeeOther)
+		return
+	}
+
+	Repo.Template.ExecuteTemplate(w, "entry.gohtml", nil)
+}
+
+func ViewWorkout(w http.ResponseWriter, req *http.Request) {
+	//Step 1: check to see if logged in
+
+	//Step 2: get id from url
+	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
+	userID := req.URL.Query()["id"][0]
+	log.Println(userID)
+	//Step 3: search database for workout with that id
+
+	//Step 4: send data to template
+	Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", nil)
 }

@@ -12,3 +12,11 @@ type UserInfo struct {
 	First    string
 	Last     string
 }
+
+type FormData map[string][]string
+
+type Workout struct {
+	Description string
+	Sets        int64
+	Reps        int64
+}

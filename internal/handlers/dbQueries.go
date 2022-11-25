@@ -3,6 +3,7 @@ package handlers
 import (
 	"gary-stroup-developer/sessions/internal/models"
 	"net/http"
+	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -45,6 +46,33 @@ func logUserIn(w http.ResponseWriter, un string, p string) (models.UserInfo, err
 	}
 
 	return models.UserInfo{UserName: u.UserName, First: u.First, Last: u.Last}, nil
+}
+
+func logWorkout(desc []string, sets []string, reps []string) ([]models.Workout, error) {
+	var i = 0
+	var m []models.Workout
+
+	for i < len(desc) {
+		//convert the string data from post request to int64 & check for error
+		s, err := strconv.ParseInt(sets[i], 10, 0)
+		if err != nil {
+			return m, err
+		}
+		//convert the string data from post request to int64 & check for error
+		r, err := strconv.ParseInt(reps[i], 10, 0)
+		if err != nil {
+			return m, err
+		}
+
+		//no errors then the workout can be populated
+		m = append(m, models.Workout{
+			Description: desc[i],
+			Sets:        s,
+			Reps:        r,
+		})
+		i++
+	}
+	return m, nil
 }
 
 // func getAllEntries() {
