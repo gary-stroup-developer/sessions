@@ -1,15 +1,23 @@
 {{template "base"}}
 
-{{if .First}}
-USER NAME {{.UserName}}<br>
-PASSWORD {{.Password}}<br>
-FIRST {{.First}}<br>
-LAST {{.LAST}}
-{{else}}
-<h2><a href="/signup"> sign up </a></h2>
-<h2><a href="/signin"> log in </a></h2>
-{{end}}
-<img src="/resources/images/hero.jpg" alt="dumbells on rack">
-<br>
-<h2>Go to <a class="linkToDash" href="/bar"> the bar</a></h2>
+<div class="card mx-auto mt-5 p-2" style="max-width: 825px;">
+  <div class="row g-0">
+    <div class="col-md-7 my-auto">
+      <img class="img-fluid rounded" src="/resources/images/hero.jpg" alt="dumbells on rack">
+    </div>
+    <div class="col-md-5">
+      <div class="card-body">
+        <h5 class="card-title">Sessions</h5>
+        <p class="card-text">Sessions will help you log each gym session in digital format. This app provides 
+        a visual dashboard that provides trends over time for each exercise. Keeps track of your PR's</p>
+        <p class="card-text">Already a Member?</p>
+        <p><a class="linkToDash" href="/signin"> log in </a></p>
+        <hr>
+        <p><a class="linkToDash" href="/signup"> sign up </a></p>
+        <p class="card-text"><small class="text-muted">Don't have an Account?</small></p>
+      </div>
+    </div>
+  </div>
+</div>
+
 {{template "footer"}}

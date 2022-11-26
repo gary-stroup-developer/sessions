@@ -1,18 +1,20 @@
 {{template "base"}}
 
 <form class="container px-3" method="post">
-<h2>LOGIN</h2>
-  <div class="mb-3">
-    <label for="username" class="form-label">User Name</label>
-    <input type="email" class="form-control" id="username" name="username" placeholder="email" aria-describedby="emailHelp">
-    <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
-  </div>
-  <div class="mb-3">
-    <label for="password" class="form-label">Password</label>
-    <input type="password" name="password" placeholder="password" class="form-control" id="password">
-  </div>
-  <button type="submit" class="btn btn-primary">Submit</button>
+  <h2>LOGIN</h2>
+    <div class="mb-3">
+      <label for="username" class="form-label">User Name</label>
+      <input type="email" class="form-control" id="username" name="username" placeholder="email" aria-describedby="emailHelp">
+      <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" name="password" placeholder="password" class="form-control" id="password">
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <hr>
+    <h4><a class="linkToDash" href="/signup"> Sign up </a></h4>
+    <p class="card-text"><small class="text-muted">Don't have an Account?</small></p>
 </form>
-<hr>
-<h4><a href="/signup"> sign up </a></h4>
+
 {{template "footer"}}
