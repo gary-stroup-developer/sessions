@@ -14,4 +14,7 @@ func Routes(r *http.ServeMux) {
 	r.HandleFunc("/workout/", handlers.ViewWorkout)
 
 	r.Handle("/favicon.ico", http.NotFoundHandler())
+
+	fileServer := http.FileServer(http.Dir("./static/"))
+	r.Handle("/resources/", http.StripPrefix("/resources/", fileServer))
 }

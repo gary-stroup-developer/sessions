@@ -5,6 +5,33 @@
     <p class="mb-3">Total Workouts for 2022: 65</p>
     <p>Let's break the numbers down by exercise</p>
 </div>
+<div class="chart-container" style="position: relative; height:80vh; width:90vw">
+  <canvas id="myChart"></canvas>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
+<script>
+  const ctx = document.getElementById('myChart');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      datasets: [{
+        label: '# of workouts',
+        data: [12, 19, 3, 5, 2, 3],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      },
+      responsive: true
+    }
+  });
+</script>
 
 {{template "footer"}}
 
