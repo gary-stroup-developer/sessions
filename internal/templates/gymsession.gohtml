@@ -1,0 +1,26 @@
+{{template "base"}}
+
+<form class="container px-3 g-3" method="post">
+ <h2>Training Log</h2>
+ <div class="row">
+    <div class="col-12 mb-3">
+        <label for="description" class="form-label">Exercise Name</label>
+        <input type="text" class="form-control" id="description" name="description" placeholder="description" aria-describedby="exercise name">
+    </div>
+
+    <div class="col-12 mb-3">
+        <label for="sets" class="form-label">Sets</label>
+        <input type="number" name="sets" placeholder="# of sets" class="form-control" id="sets">
+    </div>
+
+
+    <div class="col-12 mb-3">
+        <label for="reps" class="form-label">Reps</label>
+        <input type="number" name="reps" placeholder="# of reps" class="form-control" id="reps">
+    </div>
+
+  <button type="submit" class="btn btn-primary">Submit</button>
+
+</form>
+
+{{template "footer"}}

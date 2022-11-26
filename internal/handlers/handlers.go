@@ -137,7 +137,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	Repo.Template.ExecuteTemplate(w, "login.gohtml", nil)
 }
 
-func SubmitWorkout(w http.ResponseWriter, req *http.Request) {
+func GymSession(w http.ResponseWriter, req *http.Request) {
 	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return

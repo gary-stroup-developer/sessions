@@ -1,13 +1,27 @@
 {{template "base"}}
 
-<h1>Needs to be a get request to use query</h1>
+<h1>Entry Date</h1>
+<div>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Description</th>
+      <th scope="col">Sets</th>
+      <th scope="col">Reps</th>
+    </tr>
+  </thead>
+  <tbody id="session-entry">
+    <tr>
+      <th scope="row">1</th>
+      <td>Mark</td>
+      <td>Otto</td>
+      <td>@mdo</td>
+    </tr>
+  </tbody>
+</table>
+</div>
 
-{{if .First}}
-USER NAME {{.UserName}}<br>
-FIRST {{.First}}<br>
-LAST {{.Last}}<br>
-{{end}}
 
-<h1>Workout</h1>
 
 {{template "footer"}}
