@@ -183,3 +183,16 @@ func ViewWorkout(w http.ResponseWriter, req *http.Request) {
 	//Step 4: send data to template
 	Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", nil)
 }
+
+func LogBook(w http.ResponseWriter, req *http.Request) {
+	//Step 1: check to see if logged in
+
+	//Step 2: get id from url
+	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
+	userID := req.URL.Query()["id"][0]
+	log.Println(userID)
+	//Step 3: search database for workout with that id
+
+	//Step 4: send data to template
+	Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", nil)
+}

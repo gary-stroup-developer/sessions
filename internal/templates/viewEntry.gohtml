@@ -12,12 +12,15 @@
     </tr>
   </thead>
   <tbody id="session-entry">
+  {{range $index, $object := .}}
+ 
     <tr>
-      <th scope="row">1</th>
-      <td>Mark</td>
-      <td>Otto</td>
-      <td>@mdo</td>
+      <th scope="row">{{$index}}</th>
+      <td>{{$object.Description}}</td>
+      <td>{{$object.Sets}}</td>
+      <td>{{$object.Reps}}</td>
     </tr>
+    {{end}}
   </tbody>
 </table>
 </div>

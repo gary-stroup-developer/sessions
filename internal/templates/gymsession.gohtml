@@ -10,13 +10,18 @@
 
     <div class="col-12 mb-3">
         <label for="sets" class="form-label">Sets</label>
-        <input type="number" name="sets" placeholder="# of sets" class="form-control" id="sets">
+        <input type="number" name="sets" placeholder="# of sets" class="form-control" id="sets" aria-describedby="exercise amount of sets">
     </div>
 
 
     <div class="col-12 mb-3">
         <label for="reps" class="form-label">Reps</label>
-        <input type="number" name="reps" placeholder="# of reps" class="form-control" id="reps">
+        <input type="number" name="reps" placeholder="# of reps" class="form-control" id="reps" aria-describedby="exercise amount of reps">
+    </div>
+
+    <div class="col-12 mb-3">
+        <label for="notes" class="form-label">Notes</label>
+        <textarea name="notes" placeholder="write down key take aways from your session..." class="form-control" id="notes" aria-describedby="text area for notes"></textarea>
     </div>
 
   <button type="submit" class="btn btn-primary">Submit</button>

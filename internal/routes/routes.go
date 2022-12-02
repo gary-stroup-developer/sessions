@@ -10,8 +10,9 @@ func Routes(r *http.ServeMux) {
 	r.HandleFunc("/dashboard", handlers.Dashboard)
 	r.HandleFunc("/signup", handlers.Signup)
 	r.HandleFunc("/signin", handlers.Login)
-	r.HandleFunc("/session/entry", handlers.GymSession)
-	r.HandleFunc("/user/workout/", handlers.ViewWorkout)
+	r.HandleFunc("/logbook", handlers.LogBook)           //view all entries
+	r.HandleFunc("/session/entry", handlers.GymSession)  //form to submit workout
+	r.HandleFunc("/user/session/", handlers.ViewWorkout) //view entry by id in query param
 
 	r.Handle("/favicon.ico", http.NotFoundHandler())
 
