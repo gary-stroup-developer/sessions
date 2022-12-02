@@ -8,12 +8,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gofrs/uuid"
 	"golang.org/x/crypto/bcrypt"
 
 	_ "github.com/jackc/pgconn"
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	uuid "github.com/satori/go.uuid"
 )
 
 type Repository struct {
@@ -83,10 +83,10 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 		}
 
 		//create a session cookie
-		sID, _ := uuid.NewV4()
+		sID := uuid.NewV4().String()
 		c := &http.Cookie{
 			Name:  "session",
-			Value: sID.String(),
+			Value: sID,
 		}
 		//store cookie in browser
 		http.SetCookie(w, c)
@@ -112,18 +112,18 @@ func Login(w http.ResponseWriter, req *http.Request) {
 		un := req.FormValue("username")
 		p := req.FormValue("password")
 
-		u, err := logUserIn(w, un, p)
+		u, err := logUserIn(un, p)
 
 		if err != nil {
-			log.Fatalln(err)
+			http.Error(w, "user name and password do not match", http.StatusBadRequest)
 			return
 		}
 
 		//create a cookie
-		sID, _ := uuid.NewV4()
+		sID := uuid.NewV4().String()
 		c := &http.Cookie{
 			Name:  "session",
-			Value: sID.String(),
+			Value: sID,
 		}
 
 		http.SetCookie(w, c)
@@ -142,6 +142,8 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}
+	//get user info from cookie session
+	u := sessions.GetUser(req, Repo.DbUsers)
 
 	if req.Method == http.MethodPost {
 		//parse th form data
@@ -155,44 +157,69 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 		}
 		log.Println(wkout)
 
-		//need to create function to insert wkout into database
-		// //send user info to be stored in database
-		// err = signUserUp(data []Workout)
+		//need to create function to insert wkout into database with userid as foreign key
+		//send workout info to be stored in database
+		err = InsertGymSession(wkout, u.ID)
 
-		// if err != nil {
-		// 	log.Fatalln(err)
-		// 	return
-		// }
+		if err != nil {
+			http.Error(w, "Sorry. Unable to record gym session. Please try again", http.StatusBadRequest)
+			return
+		}
 
 		http.Redirect(w, req, "/dashboard", http.StatusSeeOther)
 		return
 	}
 
-	Repo.Template.ExecuteTemplate(w, "entry.gohtml", nil)
+	Repo.Template.ExecuteTemplate(w, "gymsession.gohtml", nil)
 }
 
 func ViewWorkout(w http.ResponseWriter, req *http.Request) {
 	//Step 1: check to see if logged in
-
+	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
 	//Step 2: get id from url
 	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
 	userID := req.URL.Query()["id"][0]
-	log.Println(userID)
+
 	//Step 3: search database for workout with that id
+	query := `select * from workouts where id=$1`
+
+	var workout models.Workout
+	Repo.DB.QueryRow(query, userID).Scan(&workout)
 
 	//Step 4: send data to template
-	Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", nil)
+	Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", workout)
 }
 
 func LogBook(w http.ResponseWriter, req *http.Request) {
 	//Step 1: check to see if logged in
+	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+	//Step 2: get id from cookie value
+	user := sessions.GetUser(req, Repo.DbUsers)
+	//Step 3: search database for all workouts
+	query := `select * from workouts where userid=$1`
 
-	//Step 2: get id from url
-	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
-	userID := req.URL.Query()["id"][0]
-	log.Println(userID)
-	//Step 3: search database for workout with that id
+	results, err := Repo.DB.Query(query, user.ID)
+	if err != nil {
+		http.Error(w, "Sorry. We are experiencing issues", http.StatusInternalServerError)
+		return
+	}
 
+	var gymSession []models.GymSession
+
+	for results.Next() {
+		var wkout models.GymSession
+
+		if err := results.Scan(&wkout.ID, &wkout.Workout, &wkout.UserID); err != nil {
+			log.Fatalln(err)
+		}
+		gymSession = append(gymSession, wkout)
+	}
 	//Step 4: send data to template
-	Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", nil)
+	Repo.Template.ExecuteTemplate(w, "logbook.gohtml", gymSession)
 }
