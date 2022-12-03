@@ -70,7 +70,7 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
 
 		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			http.Error(w, "Internal server error", http.StatusBadRequest)
 			return
 		}
 
@@ -173,21 +173,27 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 	Repo.Template.ExecuteTemplate(w, "gymsession.gohtml", nil)
 }
 
-func ViewWorkout(w http.ResponseWriter, req *http.Request) {
+func WorkoutEntry(w http.ResponseWriter, req *http.Request) {
 	//Step 1: check to see if logged in
 	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}
-	//Step 2: get id from url
-	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
-	userID := req.URL.Query()["id"][0]
 
-	//Step 3: search database for workout with that id
-	query := `select * from workouts where id=$1`
+	var workout *models.Workout
 
-	var workout models.Workout
-	Repo.DB.QueryRow(query, userID).Scan(&workout)
+	switch req.Method {
+	case http.MethodGet:
+		workout = readGymEntry(req, workout)
+	case http.MethodPut:
+		workout = updateGymEntry(req, workout)
+	case http.MethodDelete:
+		workout = deleteGymEntry(req, workout)
+	default:
+		http.Redirect(w, req, "/logbook", http.StatusSeeOther)
+		return
+	}
+	w.WriteHeader(http.StatusAccepted)
 
 	//Step 4: send data to template
 	Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", workout)

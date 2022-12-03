@@ -1,12 +1,15 @@
 package models
 
+import "time"
+
 //used to store user info in database and to authenticate user by accessing password info
 type User struct {
 	ID       string
-	UserName string `json:"username"`
-	Password []byte `json:"password"`
-	First    string `json:"firstname"`
-	Last     string `json:"lastname"`
+	UserName string    `json:"username"`
+	Password []byte    `json:"password"`
+	First    string    `json:"firstname"`
+	Last     string    `json:"lastname"`
+	Date     time.Time `json:"date"`
 }
 
 //this data sent to template
@@ -15,10 +18,12 @@ type UserInfo struct {
 	UserName string
 	First    string
 	Last     string
+	Date     time.Time
 }
 
 //each exercise in the workout will be held in this data structure
 type Workout struct {
+	ID          string   `json:"workoutid"`
 	Description string   `json:"description"`
 	Sets        int64    `json:"sets"`
 	Reps        int64    `json:"reps"`
@@ -27,7 +32,13 @@ type Workout struct {
 
 //this will be used to hold each gym sessions workout info and send/receive to/from database
 type GymSession struct {
-	ID      string
-	Workout []Workout
-	UserID  string
+	ID      string    `json:"gymID"`
+	Workout []Workout `json:"workout"`
+	UserID  string    `json:"userID"`
+	Date    time.Time `json:"date"`
+}
+
+type Data struct {
+	Data         interface{}
+	ErrorMessage string
 }

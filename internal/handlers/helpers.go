@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"gary-stroup-developer/sessions/internal/models"
+	"net/http"
 	"strconv"
 
 	uuid "github.com/satori/go.uuid"
@@ -84,26 +85,48 @@ func InsertGymSession(wo []models.Workout, userid string) error {
 	return nil
 }
 
-// func getAllEntries() {
-// 	sqlStatement := `select * from users`
-// 	rows, err := Repo.DB.Query(sqlStatement)
+func readGymEntry(r *http.Request, wo *models.Workout) *models.Workout {
+	//Step 2: get id from url
+	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
+	userID := r.URL.Query()["id"][0]
 
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	defer rows.Close()
+	//Step 3: search database for workout with that id
+	query := `select * from workouts where id=$1`
 
-// 	for rows.Next() {
-// 		var (
-// 			id   int64
-// 			name string
-// 		)
-// 		if err := rows.Scan(&id, &name); err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		log.Printf("id %d name is %s\n", id, name)
-// 	}
-// 	if !rows.NextResultSet() {
-// 		log.Fatalf("expected more result sets: %v", rows.Err())
-// 	}
-// }
+	//need to create gymSession variable
+
+	Repo.DB.QueryRow(query, userID).Scan(&wo)
+
+	return wo
+}
+
+func updateGymEntry(r *http.Request, wo *models.Workout) *models.Workout {
+	//Step 2: get id from url
+	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
+	userID := r.URL.Query()["id"][0]
+
+	//Step 3: search database for gymSession with that id
+	query := `select * from workouts where id=$1`
+
+	Repo.DB.QueryRow(query, userID).Scan(&wo)
+
+	return wo
+}
+
+func deleteGymEntry(r *http.Request, wo *models.Workout) *models.Workout {
+	//Step 2: get id from url
+	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
+	userID := r.URL.Query()["id"][0]
+
+	//Step 3: search database for workout with that id
+	query := `UPDATE workouts
+		SET workout = $1,
+    	sets = $2,
+		reps = $3,
+		notes = $4,
+		WHERE id = $1;`
+
+	Repo.DB.QueryRow(query, userID).Scan(&wo)
+
+	return wo
+}
