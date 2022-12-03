@@ -180,20 +180,23 @@ func WorkoutEntry(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var workout *models.Workout
+	//Step 2: get id from url
+	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
+	gymID := req.URL.Query()["id"][0]
+
+	var workout models.Workout
 
 	switch req.Method {
 	case http.MethodGet:
-		workout = readGymEntry(req, workout)
+		workout = readGymEntry(req, gymID)
 	case http.MethodPut:
-		workout = updateGymEntry(req, workout)
+		workout = updateGymEntry(req, gymID)
 	case http.MethodDelete:
-		workout = deleteGymEntry(req, workout)
+		workout = deleteGymEntry(req, gymID)
 	default:
 		http.Redirect(w, req, "/logbook", http.StatusSeeOther)
 		return
 	}
-	w.WriteHeader(http.StatusAccepted)
 
 	//Step 4: send data to template
 	Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", workout)
@@ -212,7 +215,7 @@ func LogBook(w http.ResponseWriter, req *http.Request) {
 
 	results, err := Repo.DB.Query(query, user.ID)
 	if err != nil {
-		http.Error(w, "Sorry. We are experiencing issues", http.StatusInternalServerError)
+		http.Error(w, "Sorry. We are experiencing issues finding workout entry", http.StatusInternalServerError)
 		return
 	}
 
@@ -222,7 +225,8 @@ func LogBook(w http.ResponseWriter, req *http.Request) {
 		var wkout models.GymSession
 
 		if err := results.Scan(&wkout.ID, &wkout.Workout, &wkout.UserID); err != nil {
-			log.Fatalln(err)
+			http.Error(w, "could not retrieve workout entries", http.StatusInternalServerError)
+			return
 		}
 		gymSession = append(gymSession, wkout)
 	}

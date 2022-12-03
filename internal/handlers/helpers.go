@@ -85,39 +85,38 @@ func InsertGymSession(wo []models.Workout, userid string) error {
 	return nil
 }
 
-func readGymEntry(r *http.Request, wo *models.Workout) *models.Workout {
-	//Step 2: get id from url
-	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
-	userID := r.URL.Query()["id"][0]
+func readGymEntry(r *http.Request, s string) models.Workout {
 
+	var wo models.Workout
 	//Step 3: search database for workout with that id
 	query := `select * from workouts where id=$1`
 
 	//need to create gymSession variable
 
-	Repo.DB.QueryRow(query, userID).Scan(&wo)
+	Repo.DB.QueryRow(query, s).Scan(&wo)
 
 	return wo
 }
 
-func updateGymEntry(r *http.Request, wo *models.Workout) *models.Workout {
-	//Step 2: get id from url
-	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
-	userID := r.URL.Query()["id"][0]
-
+func updateGymEntry(r *http.Request, s string) models.Workout {
+	var wo models.Workout
 	//Step 3: search database for gymSession with that id
-	query := `select * from workouts where id=$1`
+	//query := `select * from workouts where id=$1`
 
-	Repo.DB.QueryRow(query, userID).Scan(&wo)
+	query := `UPDATE workouts
+		SET workout = $1,
+    	sets = $2,
+		reps = $3,
+		notes = $4,
+		WHERE id = $1;`
+
+	Repo.DB.QueryRow(query, s).Scan(&wo)
 
 	return wo
 }
 
-func deleteGymEntry(r *http.Request, wo *models.Workout) *models.Workout {
-	//Step 2: get id from url
-	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
-	userID := r.URL.Query()["id"][0]
-
+func deleteGymEntry(r *http.Request, s string) models.Workout {
+	var wo models.Workout
 	//Step 3: search database for workout with that id
 	query := `UPDATE workouts
 		SET workout = $1,
@@ -126,7 +125,7 @@ func deleteGymEntry(r *http.Request, wo *models.Workout) *models.Workout {
 		notes = $4,
 		WHERE id = $1;`
 
-	Repo.DB.QueryRow(query, userID).Scan(&wo)
+	Repo.DB.QueryRow(query, s).Scan(&wo)
 
 	return wo
 }

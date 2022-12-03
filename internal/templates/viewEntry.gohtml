@@ -12,10 +12,10 @@
     </tr>
   </thead>
   <tbody id="session-entry">
-  {{range $index, $object := .}}
+  {{range := .Workout}}
  
     <tr>
-      <th scope="row">{{$index}}</th>
+      <th scope="row">{{.ID}}</th>
       <td>{{$object.Description}}</td>
       <td>{{$object.Sets}}</td>
       <td>{{$object.Reps}}</td>
