@@ -190,9 +190,17 @@ func WorkoutEntry(w http.ResponseWriter, req *http.Request) {
 	case http.MethodGet:
 		workout = readGymEntry(req, gymID)
 	case http.MethodPut:
-		workout = updateGymEntry(req, gymID)
+		err := updateGymEntry(req, gymID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	case http.MethodDelete:
-		workout = deleteGymEntry(req, gymID)
+		err := deleteGymEntry(req, gymID)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 	default:
 		http.Redirect(w, req, "/logbook", http.StatusSeeOther)
 		return

@@ -5,11 +5,10 @@ import "time"
 //used to store user info in database and to authenticate user by accessing password info
 type User struct {
 	ID       string
-	UserName string    `json:"username"`
-	Password []byte    `json:"password"`
-	First    string    `json:"firstname"`
-	Last     string    `json:"lastname"`
-	Date     time.Time `json:"date"`
+	UserName string `json:"username"`
+	Password []byte `json:"password"`
+	First    string `json:"firstname"`
+	Last     string `json:"lastname"`
 }
 
 //this data sent to template
@@ -18,7 +17,6 @@ type UserInfo struct {
 	UserName string
 	First    string
 	Last     string
-	Date     time.Time
 }
 
 //each exercise in the workout will be held in this data structure
