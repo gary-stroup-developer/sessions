@@ -12,9 +12,9 @@
       </h2>
       <div id="{{.ID}}" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
         <div class="accordion-body">
-          <p>{{$value.ID}}</p>
-          <p>Great workout today! feeling great and ready to lift heavier"</p>
-            {{range $value.Workout}}
+          <p>{{.ID}}</p>
+          <p>Great workout today! feeling great and ready to lift heavier."</p>
+            {{range .Workout}}
               <p>Desc: {{.Description}} Sets: {{.Sets}} Reps: {{.Reps}} Weight: {{.Weight}}</p>
             {{end}}
         </div>

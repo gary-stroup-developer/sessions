@@ -8,6 +8,10 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
+
+	_ "github.com/jackc/pgconn"
+	_ "github.com/jackc/pgx/v4"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 //function will insert user info into db and return the UserInfo{}
@@ -83,7 +87,7 @@ func logWorkout(desc []string, sets []string, reps []string, weight []string) ([
 	return m, nil
 }
 
-func InsertGymSession(wo []models.Workout, userid string) error {
+func InsertGymSession(wo []byte, userid string) error {
 	query := `INSERT into workouts (id, workout, userid, date) VALUES ($1, $2, $3, $4)`
 	sessionID := uuid.NewV4().String()
 	now := time.Now()

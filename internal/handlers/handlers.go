@@ -165,16 +165,21 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 			data.ErrorMessage["message"] = "workout not logged in bro!"
 			return
 		}
-
+		workout, _ := json.Marshal(&wkout)
 		//need to create function to insert wkout into database with userid as foreign key
 		//send workout info to be stored in database
-		err = InsertGymSession(wkout, u.ID)
-
+		err = InsertGymSession(workout, u.ID)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			data.ErrorMessage["message"] = "Sorry. Unable to record gym session. Please try again"
 			return
 		}
+
+		err = json.Unmarshal(workout, &wkout)
+		if err != nil {
+			log.Println("cannot unmarshal workout")
+		}
+		log.Println(wkout)
 
 		http.Redirect(w, req, "/dashboard", http.StatusSeeOther)
 		return
@@ -220,8 +225,8 @@ func WorkoutEntry(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "workout not logged in bro!", http.StatusBadRequest)
 			return
 		}
-
-		workoutSession := models.GymSession{ID: gymID, Workout: workout}
+		wkout, _ := json.Marshal(&workout)
+		workoutSession := models.GymSession{ID: gymID, Workout: wkout}
 
 		err = updateGymEntry(req, workoutSession)
 		if err != nil {
@@ -260,7 +265,7 @@ func LogBook(w http.ResponseWriter, req *http.Request) {
 	user := sessions.GetUser(req, Repo.DbUsers)
 	log.Println(user)
 	//Step 3: search database for all workouts
-	query := `SELECT id, userid, "date"
+	query := `SELECT id, workout, userid, "date"
 		FROM workouts
 		WHERE userid=$1`
 
@@ -270,16 +275,30 @@ func LogBook(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	defer results.Close()
-	var gymSession []models.GymSession
+
+	var gymSession []models.GymLog
 
 	for results.Next() {
 		var wkout models.GymSession
+		var data models.GymLog
 
-		if err := results.Scan(&wkout.ID, &wkout.UserID, &wkout.Date); err != nil {
+		if err := results.Scan(&wkout.ID, &wkout.Workout, &wkout.UserID, &wkout.Date); err != nil {
 			http.Error(w, "could not retrieve workout entries", http.StatusInternalServerError)
 			return
 		}
-		gymSession = append(gymSession, wkout)
+
+		var workout []models.Workout
+
+		err = json.Unmarshal(wkout.Workout, &workout)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		data.ID = wkout.ID
+		data.Workout = workout
+		data.UserID = wkout.UserID
+		data.Date = wkout.Date
+
+		gymSession = append(gymSession, data)
 	}
 	//Step 4: send data to template
 	Repo.Template.ExecuteTemplate(w, "logbook.gohtml", gymSession)

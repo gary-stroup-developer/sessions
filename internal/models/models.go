@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 //used to store user info in database and to authenticate user by accessing password info
 type User struct {
@@ -29,6 +31,13 @@ type Workout struct {
 
 //this will be used to hold each gym sessions workout info and send/receive to/from database
 type GymSession struct {
+	ID      string    `json:"id"`
+	Workout []byte    `json:"workout"`
+	UserID  string    `json:"userID"`
+	Date    time.Time `json:"date"`
+}
+
+type GymLog struct {
 	ID      string    `json:"id"`
 	Workout []Workout `json:"workout"`
 	UserID  string    `json:"userID"`
