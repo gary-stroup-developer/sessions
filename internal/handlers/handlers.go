@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"gary-stroup-developer/sessions/internal/models"
 	"gary-stroup-developer/sessions/internal/sessions"
 	"html/template"
-	"log"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -70,7 +70,7 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
 
 		if err != nil {
-			http.Error(w, "Internal server error", http.StatusBadRequest)
+			http.Error(w, "username and password don't match", http.StatusBadRequest)
 			return
 		}
 
@@ -78,7 +78,7 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 		u, err := signUserUp(un, bs, f, l)
 
 		if err != nil {
-			http.Error(w, "Uh oh. Something went wrong on our end. Try signing up again", http.StatusInternalServerError)
+			http.Error(w, "username and password don't match", http.StatusBadRequest)
 			return
 		}
 
@@ -115,7 +115,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 		u, err := logUserIn(un, p)
 
 		if err != nil {
-			http.Error(w, "user name and password do not match", http.StatusBadRequest)
+			http.Error(w, "username and password don't match", http.StatusBadRequest)
 			return
 		}
 
@@ -145,6 +145,8 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 	//get user info from cookie session
 	u := sessions.GetUser(req, Repo.DbUsers)
 
+	var data models.Data
+
 	if req.Method == http.MethodPost {
 		//parse th form data
 		req.ParseForm()
@@ -153,16 +155,18 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 		wkout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"])
 
 		if err != nil {
-			http.Error(w, "workout not logged in bro!", http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			data.ErrorMessage["message"] = "workout not logged in bro!"
+			return
 		}
-		log.Println(wkout)
 
 		//need to create function to insert wkout into database with userid as foreign key
 		//send workout info to be stored in database
 		err = InsertGymSession(wkout, u.ID)
 
 		if err != nil {
-			http.Error(w, "Sorry. Unable to record gym session. Please try again", http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			data.ErrorMessage["message"] = "Sorry. Unable to record gym session. Please try again"
 			return
 		}
 
@@ -170,7 +174,7 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	Repo.Template.ExecuteTemplate(w, "gymsession.gohtml", nil)
+	Repo.Template.ExecuteTemplate(w, "gymsession.gohtml", data)
 }
 
 func WorkoutEntry(w http.ResponseWriter, req *http.Request) {
@@ -179,35 +183,65 @@ func WorkoutEntry(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}
-
 	//Step 2: get id from url
 	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
 	gymID := req.URL.Query()["id"][0]
 
-	var workout models.Workout
+	var workoutSession models.GymSession
+	var data models.Data
 
 	switch req.Method {
+
 	case http.MethodGet:
-		workout = readGymEntry(req, gymID)
-	case http.MethodPut:
-		err := updateGymEntry(req, gymID)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+		if gymID == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			data.ErrorMessage["message"] = "Unable to retreive gym entry"
 			return
 		}
+
+		workoutSession = readGymEntry(req, gymID)
+		data.Data = workoutSession
+		//Step 4: send data to template
+		Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", data)
+
+	case http.MethodPut:
+		req.ParseForm()
+
+		//parse each field into []Workout
+		workout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"])
+
+		if err != nil {
+			http.Error(w, "workout not logged in bro!", http.StatusBadRequest)
+			return
+		}
+
+		workoutSession := models.GymSession{ID: gymID, Workout: workout}
+
+		err = updateGymEntry(req, workoutSession)
+		if err != nil {
+			http.Error(w, "workout not updated bro!", http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusAccepted)
+		w.Header().Set("Content-Type", "application/json")
+		jsonResp, _ := json.Marshal(map[string]string{"message": "workout has been updated!"})
+		w.Write(jsonResp)
+
 	case http.MethodDelete:
 		err := deleteGymEntry(req, gymID)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
+			http.Error(w, "workout not deleted bro!", http.StatusBadRequest)
 			return
 		}
+		w.WriteHeader(http.StatusAccepted)
+		w.Header().Set("Content-Type", "application/json")
+		jsonResp, _ := json.Marshal(map[string]string{"message": "workout has been deleted!"})
+		w.Write(jsonResp)
 	default:
 		http.Redirect(w, req, "/logbook", http.StatusSeeOther)
 		return
 	}
 
-	//Step 4: send data to template
-	Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", workout)
 }
 
 func LogBook(w http.ResponseWriter, req *http.Request) {

@@ -85,9 +85,9 @@ func InsertGymSession(wo []models.Workout, userid string) error {
 	return nil
 }
 
-func readGymEntry(r *http.Request, s string) models.Workout {
+func readGymEntry(r *http.Request, s string) models.GymSession {
 
-	var wo models.Workout
+	var wo models.GymSession
 	//Step 3: search database for workout with that id
 	query := `select * from workouts where id=$1`
 
@@ -98,18 +98,15 @@ func readGymEntry(r *http.Request, s string) models.Workout {
 	return wo
 }
 
-func updateGymEntry(r *http.Request, s string) error {
+func updateGymEntry(r *http.Request, gym models.GymSession) error {
 	//Step 3: search database for gymSession with that id
 	//query := `select * from workouts where id=$1`
 
 	query := `UPDATE workouts
-		SET workout = $1,
-    	sets = $2,
-		reps = $3,
-		notes = $4,
-		WHERE id = $1;`
+		SET workout = $1
+		WHERE id = $2;`
 
-	_, err := Repo.DB.Exec(query, s)
+	_, err := Repo.DB.Exec(query, gym.Workout, gym.ID)
 
 	if err != nil {
 		return err
@@ -121,12 +118,7 @@ func updateGymEntry(r *http.Request, s string) error {
 func deleteGymEntry(r *http.Request, s string) error {
 
 	//Step 3: search database for workout with that id
-	query := `UPDATE workouts
-		SET workout = $1,
-    	sets = $2,
-		reps = $3,
-		notes = $4,
-		WHERE id = $1;`
+	query := `DELETE from workouts WHERE id = $1;`
 
 	_, err := Repo.DB.Exec(query, s)
 

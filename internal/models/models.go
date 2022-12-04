@@ -21,7 +21,6 @@ type UserInfo struct {
 
 //each exercise in the workout will be held in this data structure
 type Workout struct {
-	ID          string   `json:"workoutid"`
 	Description string   `json:"description"`
 	Sets        int64    `json:"sets"`
 	Reps        int64    `json:"reps"`
@@ -38,5 +37,5 @@ type GymSession struct {
 
 type Data struct {
 	Data         interface{}
-	ErrorMessage string
+	ErrorMessage map[string]string
 }
