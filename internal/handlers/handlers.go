@@ -6,6 +6,7 @@ import (
 	"gary-stroup-developer/sessions/internal/models"
 	"gary-stroup-developer/sessions/internal/sessions"
 	"html/template"
+	"log"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -36,11 +37,13 @@ func SetRepo(r *Repository) {
 	Repo = r
 }
 
+//works fine
 func Index(w http.ResponseWriter, req *http.Request) {
 
 	Repo.Template.ExecuteTemplate(w, "index.gohtml", nil)
 }
 
+//works fine but needs to be completed
 func Dashboard(w http.ResponseWriter, req *http.Request) {
 
 	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
@@ -53,6 +56,7 @@ func Dashboard(w http.ResponseWriter, req *http.Request) {
 	Repo.Template.ExecuteTemplate(w, "dashboard.gohtml", u)
 }
 
+//works fine
 func Signup(w http.ResponseWriter, req *http.Request) {
 	if sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
@@ -101,6 +105,7 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 	Repo.Template.ExecuteTemplate(w, "signup.gohtml", nil)
 }
 
+//works fine
 func Login(w http.ResponseWriter, req *http.Request) {
 	if sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
@@ -137,6 +142,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	Repo.Template.ExecuteTemplate(w, "login.gohtml", nil)
 }
 
+//works fine
 func GymSession(w http.ResponseWriter, req *http.Request) {
 	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
@@ -150,9 +156,9 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodPost {
 		//parse th form data
 		req.ParseForm()
-
+		log.Println(req.Form["description"], req.Form["sets"], req.Form["reps"], req.Form["weight"])
 		//parse each field into []Workout
-		wkout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"])
+		wkout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"], req.Form["weight"])
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -208,7 +214,7 @@ func WorkoutEntry(w http.ResponseWriter, req *http.Request) {
 		req.ParseForm()
 
 		//parse each field into []Workout
-		workout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"])
+		workout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"], req.Form["weight"])
 
 		if err != nil {
 			http.Error(w, "workout not logged in bro!", http.StatusBadRequest)
@@ -252,21 +258,24 @@ func LogBook(w http.ResponseWriter, req *http.Request) {
 	}
 	//Step 2: get id from cookie value
 	user := sessions.GetUser(req, Repo.DbUsers)
+	log.Println(user)
 	//Step 3: search database for all workouts
-	query := `select * from workouts where userid=$1`
+	query := `SELECT id, userid, "date"
+		FROM workouts
+		WHERE userid=$1`
 
 	results, err := Repo.DB.Query(query, user.ID)
 	if err != nil {
 		http.Error(w, "Sorry. We are experiencing issues finding workout entry", http.StatusInternalServerError)
 		return
 	}
-
+	defer results.Close()
 	var gymSession []models.GymSession
 
 	for results.Next() {
 		var wkout models.GymSession
 
-		if err := results.Scan(&wkout.ID, &wkout.Workout, &wkout.UserID); err != nil {
+		if err := results.Scan(&wkout.ID, &wkout.UserID, &wkout.Date); err != nil {
 			http.Error(w, "could not retrieve workout entries", http.StatusInternalServerError)
 			return
 		}

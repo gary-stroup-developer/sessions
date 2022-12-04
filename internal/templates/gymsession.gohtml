@@ -15,36 +15,86 @@
         </div>
     </div>
 {{end}}
-<form class="container px-3 g-3 gym-form" method="post">
- <h2>Training Log</h2>
- <div class="row">
-  <div class="col-12 mb-3">
-        <label for="date" class="form-label">Exercise Name</label>
-        <input type="date" class="form-control" id="date" name="date" placeholder="date" aria-describedby="exercise name"  min="2022-01-01">
+  <form class="container px-3 g-3 gym-form" id="view-entry" method="post">
+    <table id="myTable" class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">Description</th>
+          <th scope="col">Sets</th>
+          <th scope="col">Reps</th>
+          <th scope="col">Weight</th>
+        </tr>
+      </thead>
+      <tbody id="session-entry">
+        <tr>
+          <td><input type="text" class="form-control entry-input" id="description" name="description" placeholder="description" aria-describedby="exercise name"></td>
+          <td><input type="number" class="form-control entry-input" id="sets" name="sets" placeholder="# of sets" aria-describedby="exercise amount of sets"></td>
+          <td><input type="number" class="form-control entry-input" id="reps" name="reps" placeholder="# of reps" aria-describedby="exercise amount of reps"></td>
+          <td><input type="number" class="form-control entry-input" id="weight" name="weight" placeholder="# of lbs" aria-describedby="exercise amount of weight"></td>
+        </tr>
+         <tr>
+          <td><input type="text" class="form-control entry-input" id="description" name="description" placeholder="description" aria-describedby="exercise name"></td>
+          <td><input type="number" class="form-control entry-input" id="sets" name="sets" placeholder="# of sets" aria-describedby="exercise amount of sets"></td>
+          <td><input type="number" class="form-control entry-input" id="reps" name="reps" placeholder="# of reps" aria-describedby="exercise amount of reps"></td>
+          <td><input type="number" class="form-control entry-input" id="weight" name="weight" placeholder="# of lbs" aria-describedby="exercise amount of weight"></td>
+        </tr>
+        <tr>
+          <td><input type="text" class="form-control entry-input" id="description" name="description" placeholder="description" aria-describedby="exercise name"></td>
+          <td><input type="number" class="form-control entry-input" id="sets" name="sets" placeholder="# of sets" aria-describedby="exercise amount of sets"></td>
+          <td><input type="number" class="form-control entry-input" id="reps" name="reps" placeholder="# of reps" aria-describedby="exercise amount of reps"></td>
+          <td><input type="number" class="form-control entry-input" id="weight" name="weight" placeholder="# of lbs" aria-describedby="exercise amount of weight"></td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div>
+    <button type="button" class="btn btn-primary" onclick="addMoreData()">Add Rows</button>
+    <button class="btn btn-primary" type="submit" form="view-entry">Submit</button>
+   
     </div>
-    <div class="col-12 mb-3">
-        <label for="description" class="form-label">Exercise Name</label>
-        <input type="text" class="form-control" id="description" name="description" placeholder="description" aria-describedby="exercise name">
-    </div>
+  </form>
+  <script>
+    function addMoreData() {
+        var table = document.getElementById("myTable").getElementsByTagName('tbody')[0];
+        var row = table.insertRow();
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+        var cell3 = row.insertCell(2);
+        var cell4 = row.insertCell(3);
 
-    <div class="col-12 mb-3">
-        <label for="sets" class="form-label">Sets</label>
-        <input type="number" name="sets" placeholder="# of sets" class="form-control" id="sets" aria-describedby="exercise amount of sets">
-    </div>
+        var desc = document.createElement('input');
+        desc.type = 'text';
+        desc.id = 'description';
+        desc.name = 'description';
+        desc.className = 'form-control entry-input';
+        desc.placeholder = "description"
 
+        var sets = document.createElement('input');
+        sets.type = 'number';
+        sets.id = 'sets';
+        sets.name = 'sets';
+        sets.className = 'form-control entry-input';
+        sets.placeholder = "# of sets"
 
-    <div class="col-12 mb-3">
-        <label for="reps" class="form-label">Reps</label>
-        <input type="number" name="reps" placeholder="# of reps" class="form-control" id="reps" aria-describedby="exercise amount of reps">
-    </div>
+        var reps = document.createElement('input');
+        reps.type = 'number';
+        reps.id = 'reps';
+        reps.name = 'reps';
+        reps.className = 'form-control entry-input';
+        reps.placeholder = "# of reps"
 
-    <div class="col-12 mb-3">
-        <label for="notes" class="form-label">Notes</label>
-        <textarea name="notes" placeholder="write down key take aways from your session..." class="form-control" id="notes" aria-describedby="text area for notes"></textarea>
-    </div>
+        var weight = document.createElement('input');
+        weight.type = 'number';
+        weight.id = 'weight';
+        weight.name = 'weight';
+        weight.className = 'form-control entry-input';
+        weight.placeholder = "# of lbs"
 
-  <button type="submit" class="btn btn-primary">Submit</button>
-
-</form>
+        cell1.appendChild(desc);
+        cell2.appendChild(sets);
+        cell3.appendChild(reps);
+        cell4.appendChild(weight);
+    }
+  </script>
 
 {{template "footer"}}

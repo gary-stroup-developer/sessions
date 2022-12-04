@@ -4,6 +4,7 @@ import (
 	"gary-stroup-developer/sessions/internal/models"
 	"net/http"
 	"strconv"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -48,7 +49,7 @@ func logUserIn(un string, p string) (models.UserInfo, error) {
 	return models.UserInfo{ID: u.ID, UserName: u.UserName, First: u.First, Last: u.Last}, nil
 }
 
-func logWorkout(desc []string, sets []string, reps []string) ([]models.Workout, error) {
+func logWorkout(desc []string, sets []string, reps []string, weight []string) ([]models.Workout, error) {
 	var i = 0
 	var m []models.Workout
 
@@ -64,11 +65,18 @@ func logWorkout(desc []string, sets []string, reps []string) ([]models.Workout, 
 			return m, err
 		}
 
+		//convert the string data from post request to int64 & check for error
+		w, err := strconv.ParseInt(weight[i], 10, 0)
+		if err != nil {
+			return m, err
+		}
+
 		//no errors then the workout can be populated
 		m = append(m, models.Workout{
 			Description: desc[i],
 			Sets:        s,
 			Reps:        r,
+			Weight:      w,
 		})
 		i++
 	}
@@ -76,9 +84,11 @@ func logWorkout(desc []string, sets []string, reps []string) ([]models.Workout, 
 }
 
 func InsertGymSession(wo []models.Workout, userid string) error {
-	query := `INSERT into workouts (id, workout, userid) VALUES ($1, $2, $3)`
+	query := `INSERT into workouts (id, workout, userid, date) VALUES ($1, $2, $3, $4)`
 	sessionID := uuid.NewV4().String()
-	_, err := Repo.DB.Exec(query, sessionID, wo, userid)
+	now := time.Now()
+	date := now.Format("2006-01-01")
+	_, err := Repo.DB.Exec(query, sessionID, wo, userid, date)
 	if err != nil {
 		return err
 	}
