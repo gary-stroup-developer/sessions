@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"gary-stroup-developer/sessions/internal/models"
 	"gary-stroup-developer/sessions/internal/sessions"
 	"html/template"
@@ -277,7 +278,7 @@ func EditWorkoutEntry(w http.ResponseWriter, req *http.Request) {
 
 	if req.Method == http.MethodPut {
 		req.ParseForm()
-
+		fmt.Println(req.Form["description"], req.Form["sets"], req.Form["reps"], req.Form["weight"])
 		//parse each field into []Workout
 		workout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"], req.Form["weight"])
 

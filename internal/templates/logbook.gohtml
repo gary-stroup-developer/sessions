@@ -34,9 +34,10 @@
                 {{end}}
                 </tbody>
               </table>
+              <button id="btn {{.ID}}" class="btn btn-dark" style="display:none; margin: 2rem 0;" type="button" name="update-form" onclick="updateEntry('/user/session/edit/?id={{.ID}}')">Update</button>
             </form>
-            <button id="btn-{{.ID}}-edit" type="button" name="edit-form" onclick="editEntry('/user/session/edit/?id={{.ID}}')">Edit</button>
-            <button id="btn-{{.ID}}-delete" type="button" name="delete-form" onclick="deleteEntry('/user/session/delete/?id={{.ID}}')">Delete</button>
+            <button id="btn-{{.ID}}-edit" class="btn btn-dark" type="button" name="edit-form" onclick="editEntry()">Edit</button>
+            <button id="btn-{{.ID}}-delete" class="btn btn-dark" type="button" name="delete-form" onclick="deleteEntry('/user/session/delete/?id={{.ID}}')">Delete</button>
         </div>
       </div>
     </div>
@@ -54,13 +55,45 @@
     }
   }
 
-  function editEntry(url){
-    var id = this.id.split("-")[1]
-    var data = new FormData(document.getElementById("table-"+id));
+  function editEntry() {
+  {{/* const table = document.getElementById("table");
+  const collection = table.getElementsByTagName("input");
+  document.getElementById("demo").innerHTML = collection[3].value; */}}
+    
+    var submitBtn = document.getElementsByClassName("btn")[0]
+    submitBtn.style.display = "block";
+
+    var id = submitBtn.id.split(" ")[1]
+    console.log(id)
+    var form = document.getElementById("table-"+id)
+    var inputs = form.getElementsByTagName("input")
+
+    for( var i = 0; i < inputs.length; i++){
+      inputs[i].disabled = false;
+    }
+   
+  }
+
+  function updateEntry(url){
+    var submitBtn = document.getElementsByClassName("btn")[0]
+    var id = submitBtn.id.split(" ")[1]
+    var form = document.getElementById("table-"+id)
+    var inputs = form.getElementsByTagName("input")
+    
+    var data = new FormData();
+
+    for (var i = 0; i < inputs.length; i+=4) {
+      data.append("description",inputs[i].value)
+      data.append("sets",inputs[i+1].value)
+      data.append("reps",inputs[i+2].value)
+      data.append("weight",inputs[i+3].value)
+    }
+
+
     
     fetch(url,{
-    method:'PUT',
-    body: JSON.stringify(data)
+      method:'PUT',
+      body: JSON.stringify(data)
     }).then(CheckError)
       .then(response => {
         alert(response.message)
