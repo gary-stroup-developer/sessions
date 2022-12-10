@@ -7,6 +7,7 @@ import (
 	"gary-stroup-developer/sessions/internal/models"
 	"gary-stroup-developer/sessions/internal/sessions"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -272,15 +273,20 @@ func EditWorkoutEntry(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}
-	//Step 2: get id from url
-	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
-	gymID := req.URL.Query()["id"][0]
-
+	var data models.FormData
 	if req.Method == http.MethodPut {
-		req.ParseForm()
-		fmt.Println(req.Form["description"], req.Form["sets"], req.Form["reps"], req.Form["weight"])
-		//parse each field into []Workout
-		workout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"], req.Form["weight"])
+		//Step 2: get id from url
+		// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
+		gymID := req.URL.Query()["id"][0]
+		values, _ := io.ReadAll(req.Body)
+		err := json.Unmarshal(values, &data)
+		if err != nil {
+			log.Println("no body found")
+		}
+
+		fmt.Println(data)
+		// parse each field into []Workout
+		workout, err := logWorkout(data.Description, data.Sets, data.Reps, data.Weight)
 
 		if err != nil {
 			http.Error(w, "workout updates was not inserted into the DB bro!", http.StatusBadRequest)

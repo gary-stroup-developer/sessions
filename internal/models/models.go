@@ -49,3 +49,10 @@ type Data struct {
 	Data         interface{}
 	ErrorMessage map[string]string
 }
+
+type FormData struct {
+	Description []string `json:"description"`
+	Sets        []string `json:"sets"`
+	Reps        []string `json:"reps"`
+	Weight      []string `json:"weight"`
+}

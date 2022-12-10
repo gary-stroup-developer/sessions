@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"gary-stroup-developer/sessions/internal/models"
 	"net/http"
 	"strconv"
@@ -90,8 +91,13 @@ func logWorkout(desc []string, sets []string, reps []string, weight []string) ([
 func InsertGymSession(wo []byte, userid string) error {
 	query := `INSERT into workouts (id, workout, userid, date) VALUES ($1, $2, $3, $4)`
 	sessionID := uuid.NewV4().String()
-	now := time.Now()
-	date := now.Format("2006-01-01")
+
+	year := strconv.Itoa(time.Now().UTC().Year())
+	month := time.Now().UTC().Month().String()
+	day := strconv.Itoa(time.Now().UTC().Day())
+
+	date := fmt.Sprintf(`%s-%s-%s`, year, month, day)
+	//date := now.Format("2006-01-01")
 	_, err := Repo.DB.Exec(query, sessionID, wo, userid, date)
 	if err != nil {
 		return err
