@@ -5,18 +5,38 @@
   <div class="accordion" id="accordionExample">
   {{range .}}
     <div class="accordion-item">
-      <h2 class="accordion-header" id="headingOne">
-        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#{{.ID}}" aria-expanded="true" aria-controls="{{.ID}}">
+      <h2 class="accordion-header" id="heading-{{.Index}}">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{.Index}}" aria-expanded="true" aria-controls="{{.Index}}">
           {{.Date}}
         </button>
       </h2>
-      <div id="{{.ID}}" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+      <div id="collapse-{{.Index}}" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
         <div class="accordion-body">
-          <p>{{.ID}}</p>
-          <p>Great workout today! feeling great and ready to lift heavier."</p>
-            {{range .Workout}}
-              <p>Desc: {{.Description}} Sets: {{.Sets}} Reps: {{.Reps}} Weight: {{.Weight}}</p>
-            {{end}}
+              <form id="table-{{.ID}}">
+              <table class="table table-info table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Description</th>
+                    <th scope="col">Sets</th>
+                    <th scope="col">Reps</th>
+                    <th scope="col">Weight</th>
+                  </tr>
+                </thead>
+                <tbody id="session-entry-{{.Index}}">
+                <p id="{{.ID}}">Gym Session: {{.ID}}</p>
+                {{range .Workout}}
+                  <tr>
+                    <td><input type="text" value={{.Description}} class="form-control entry-input" id="description-{{.Description}}" name="description" placeholder="description" aria-describedby="exercise name" disabled></td>
+                    <td><input type="number" value={{.Sets}} class="form-control entry-input" id="sets-{{.Description}}" name="sets" placeholder="# of sets" aria-describedby="exercise amount of sets" disabled></td>
+                    <td><input type="number" value={{.Reps}} class="form-control entry-input" id="reps-{{.Description}}" name="reps" placeholder="# of reps" aria-describedby="exercise amount of reps" disabled></td>
+                    <td><input type="number" value={{.Weight}} class="form-control entry-input" id="weight-{{.Description}}" name="weight" placeholder="# of lbs" aria-describedby="exercise amount of weight" disabled></td>
+                  </tr>
+                {{end}}
+                </tbody>
+              </table>
+            </form>
+            <button id="btn-{{.ID}}-edit" type="button" name="edit-form" onclick="editEntry('/user/session/edit/?id={{.ID}}')">Edit</button>
+            <button id="btn-{{.ID}}-delete" type="button" name="delete-form" onclick="deleteEntry('/user/session/delete/?id={{.ID}}')">Delete</button>
         </div>
       </div>
     </div>
@@ -24,6 +44,49 @@
   </div>
 </div>
 
+<script>
+
+  function CheckError(response) {
+    if (response.status >= 200 && response.status <= 299) {
+      return response.json();
+    } else {
+      throw Error(response.statusText);
+    }
+  }
+
+  function editEntry(url){
+    var id = this.id.split("-")[1]
+    var data = new FormData(document.getElementById("table-"+id));
+    
+    fetch(url,{
+    method:'PUT',
+    body: JSON.stringify(data)
+    }).then(CheckError)
+      .then(response => {
+        alert(response.message)
+        window.setTimeout (function(){
+        document.location.href='/dashboard'
+        }, 5000);
+      }).catch((error) => {
+          return alert(error.message)
+      });
+  }
+
+  function deleteEntry(url){
+
+    fetch(url,{
+      method:'DELETE',
+      }).then(CheckError)
+        .then((response) => {
+          alert(response.message)
+          window.setTimeout (function(){
+          document.location.href='/dashboard'
+          }, 5000);
+        }).catch((error) => {
+          return alert(error.message)
+        });
+    }
+</script>
 
 
 {{template "footer"}}

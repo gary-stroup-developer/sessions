@@ -39,9 +39,10 @@ type GymSession struct {
 
 type GymLog struct {
 	ID      string    `json:"id"`
+	Index   string    `json:"index"`
 	Workout []Workout `json:"workout"`
 	UserID  string    `json:"userID"`
-	Date    time.Time `json:"date"`
+	Date    string    `json:"date"`
 }
 
 type Data struct {

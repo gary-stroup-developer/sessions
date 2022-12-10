@@ -7,12 +7,15 @@ import (
 
 func Routes(r *http.ServeMux) {
 	r.HandleFunc("/", handlers.Index)
-	r.HandleFunc("/dashboard", handlers.Dashboard)
 	r.HandleFunc("/signup", handlers.Signup)
 	r.HandleFunc("/signin", handlers.Login)
-	r.HandleFunc("/logbook", handlers.LogBook)            //view all workout entries
-	r.HandleFunc("/session/entry", handlers.GymSession)   //form to create workout entry and submit to database
-	r.HandleFunc("/user/session/", handlers.WorkoutEntry) //Read, edit, or delete workout entry
+
+	r.HandleFunc("/dashboard", handlers.Dashboard)
+	r.HandleFunc("/logbook", handlers.LogBook)          //view all workout entries
+	r.HandleFunc("/session/entry", handlers.GymSession) //form to create workout entry and submit to database
+
+	r.HandleFunc("/user/session/edit/", handlers.EditWorkoutEntry)
+	r.HandleFunc("/user/session/delete/", handlers.DeleteWorkoutEntry)
 
 	r.Handle("/favicon.ico", http.NotFoundHandler())
 

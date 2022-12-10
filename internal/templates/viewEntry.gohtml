@@ -3,69 +3,9 @@
 <h1>{{.Data.Date}}</h1>
 <div>
 
-  <form id="view-entry">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th scope="col">Description</th>
-          <th scope="col">Sets</th>
-          <th scope="col">Reps</th>
-          <th scope="col">Weight</th>
-        </tr>
-      </thead>
-      <tbody id="session-entry">
-      {{range .Data.Workout}}
-        <tr>
-          <td><input type="text" value={{.Description}} class="form-control entry-input" id="description" name="description" placeholder="description" aria-describedby="exercise name"></td>
-          <td><input type="number" value={{.Sets}} class="form-control entry-input" id="sets" name="sets" placeholder="# of sets" aria-describedby="exercise amount of sets"></td>
-          <td><input type="number" value={{.Reps}} class="form-control entry-input" id="reps" name="reps" placeholder="# of reps" aria-describedby="exercise amount of reps"></td>
-          <td><input type="number" value={{.Weight}} class="form-control entry-input" id="weight" name="weight" placeholder="# of lbs" aria-describedby="exercise amount of weight"></td>
-        </tr>
-      {{end}}
-      </tbody>
-    </table>
-    <button class="btn btn-primary" type="button" form="view-entry" onclick="editEntry(`/user/session/?id={{.ID}}`)">Edit</button>
-    <button class="btn btn-primary" type="button" form="view-entry" onclick="deleteEntry(`/user/session/?id={{.ID}}`)">Delete</button>
-  </form>
+
 </div>
-<script>
 
-  function CheckError(response) {
-    if (response.status >= 200 && response.status <= 299) {
-      return response.json();
-    } else {
-      throw Error(response.statusText);
-    }
-  }
-
-  function editEntry(url){
-    var data = new FormData(document.getElementById("view-entry"));
-    
-    fetch(url,options{
-    method:'PUT',
-    body: JSON.stringify(data)
-    }).then(CheckError)
-      .then(data => {
-        alert(data.message)
-        window.setTimeout ("document.location.href='/dashboard'", 5000);
-      }).catch((error) => {
-          return alert(error.message)
-      });
-  }
-
-  function deleteEntry(url){
-    
-    fetch(url,options{
-      method:'DELETE',
-      }).then(CheckError)
-        .then((response) => {
-          alert(response.message)
-          window.setTimeout ("document.location.href='/dashboard'", 5000);
-        }).catch((error) => {
-          return alert(error.message)
-        });
-    }
-</script>
 
 {{/* data.append("description", document.getElementById("description").value);
     data.append("sets", document.getElementById("sets").value);

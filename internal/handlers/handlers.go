@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -188,73 +189,6 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 	Repo.Template.ExecuteTemplate(w, "gymsession.gohtml", data)
 }
 
-func WorkoutEntry(w http.ResponseWriter, req *http.Request) {
-	//Step 1: check to see if logged in
-	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
-		http.Redirect(w, req, "/", http.StatusSeeOther)
-		return
-	}
-	//Step 2: get id from url
-	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
-	gymID := req.URL.Query()["id"][0]
-
-	var workoutSession models.GymSession
-	var data models.Data
-
-	switch req.Method {
-
-	case http.MethodGet:
-		if gymID == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			data.ErrorMessage["message"] = "Unable to retreive gym entry"
-			return
-		}
-
-		workoutSession = readGymEntry(req, gymID)
-		data.Data = workoutSession
-		//Step 4: send data to template
-		Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", data)
-
-	case http.MethodPut:
-		req.ParseForm()
-
-		//parse each field into []Workout
-		workout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"], req.Form["weight"])
-
-		if err != nil {
-			http.Error(w, "workout not logged in bro!", http.StatusBadRequest)
-			return
-		}
-		wkout, _ := json.Marshal(&workout)
-		workoutSession := models.GymSession{ID: gymID, Workout: wkout}
-
-		err = updateGymEntry(req, workoutSession)
-		if err != nil {
-			http.Error(w, "workout not updated bro!", http.StatusBadRequest)
-			return
-		}
-		w.WriteHeader(http.StatusAccepted)
-		w.Header().Set("Content-Type", "application/json")
-		jsonResp, _ := json.Marshal(map[string]string{"message": "workout has been updated!"})
-		w.Write(jsonResp)
-
-	case http.MethodDelete:
-		err := deleteGymEntry(req, gymID)
-		if err != nil {
-			http.Error(w, "workout not deleted bro!", http.StatusBadRequest)
-			return
-		}
-		w.WriteHeader(http.StatusAccepted)
-		w.Header().Set("Content-Type", "application/json")
-		jsonResp, _ := json.Marshal(map[string]string{"message": "workout has been deleted!"})
-		w.Write(jsonResp)
-	default:
-		http.Redirect(w, req, "/logbook", http.StatusSeeOther)
-		return
-	}
-
-}
-
 func LogBook(w http.ResponseWriter, req *http.Request) {
 	//Step 1: check to see if logged in
 	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
@@ -263,7 +197,7 @@ func LogBook(w http.ResponseWriter, req *http.Request) {
 	}
 	//Step 2: get id from cookie value
 	user := sessions.GetUser(req, Repo.DbUsers)
-	log.Println(user)
+	//log.Println(user)
 	//Step 3: search database for all workouts
 	query := `SELECT id, workout, userid, "date"
 		FROM workouts
@@ -294,12 +228,104 @@ func LogBook(w http.ResponseWriter, req *http.Request) {
 			log.Fatalln(err)
 		}
 		data.ID = wkout.ID
+		data.Index = strings.Split(wkout.ID, "-")[0]
 		data.Workout = workout
 		data.UserID = wkout.UserID
-		data.Date = wkout.Date
+		data.Date = strings.Split(wkout.Date.String(), " ")[0]
 
 		gymSession = append(gymSession, data)
+
 	}
 	//Step 4: send data to template
 	Repo.Template.ExecuteTemplate(w, "logbook.gohtml", gymSession)
+}
+
+func WorkoutEntry(w http.ResponseWriter, req *http.Request) {
+	//Step 1: check to see if logged in
+	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+	//Step 2: get id from url
+	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
+	gymID := req.URL.Query()["id"][0]
+
+	var workoutSession models.GymSession
+	var data models.Data
+
+	if gymID == "" {
+		http.Error(w, "Unable to retreive gym entry", http.StatusBadRequest)
+		return
+	}
+
+	workoutSession = readGymEntry(req, gymID)
+	data.Data = workoutSession
+	//Step 4: send data to template
+	Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", data)
+
+}
+
+func EditWorkoutEntry(w http.ResponseWriter, req *http.Request) {
+	//Step 1: check to see if logged in
+	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+	//Step 2: get id from url
+	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
+	gymID := req.URL.Query()["id"][0]
+
+	if req.Method == http.MethodPut {
+		req.ParseForm()
+
+		//parse each field into []Workout
+		workout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"], req.Form["weight"])
+
+		if err != nil {
+			http.Error(w, "workout updates was not inserted into the DB bro!", http.StatusBadRequest)
+			return
+		}
+		wkout, err := json.Marshal(&workout)
+		if err != nil {
+			http.Error(w, "workout not updated bro!", http.StatusBadRequest)
+			return
+		}
+
+		workoutSession := models.GymSession{ID: gymID, Workout: wkout}
+
+		err = updateGymEntry(req, workoutSession)
+		if err != nil {
+			http.Error(w, "workout not updated bro!", http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		jsonResp, _ := json.Marshal(map[string]string{"message": "workout has been updated!"})
+		w.Write(jsonResp)
+	}
+}
+
+func DeleteWorkoutEntry(w http.ResponseWriter, req *http.Request) {
+	//Step 1: check to see if logged in
+	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+	//Step 2: get id from url
+	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
+	gymID := req.URL.Query()["id"][0]
+	log.Println(gymID)
+
+	if req.Method == http.MethodDelete {
+		err := deleteGymEntry(req, gymID)
+		if err != nil {
+			http.Error(w, "workout not deleted bro!", http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		jsonResp, _ := json.Marshal(map[string]string{"message": "workout has been deleted!"})
+		w.Write(jsonResp)
+	}
+
 }
