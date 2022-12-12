@@ -15,12 +15,12 @@ import (
 
 var tpl *template.Template
 
-// func init() {
-
-// }
-
 func init() {
 	tpl = template.Must(template.ParseGlob("./internal/templates/*"))
+}
+
+func main() {
+
 	godotenv.Load(".env")
 
 	var pass = os.Getenv("PASSWORD")

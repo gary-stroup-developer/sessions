@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"gary-stroup-developer/sessions/internal/models"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -116,6 +117,48 @@ func readGymEntry(r *http.Request, s string) models.GymSession {
 	Repo.DB.QueryRow(query, s).Scan(&wo)
 
 	return wo
+}
+
+func totalWorkoutCount(id string) int64 {
+
+	var count int64
+	//Step 3: search database for workout with that id
+	query := `select count(*) from workouts where id=$1 and date_part('year', date) = date_part('year', CURRENT_DATE);`
+
+	//need to create gymSession variable
+
+	result, _ := Repo.DB.Query(query, id)
+
+	defer result.Close()
+
+	for result.Next() {
+		result.Scan(&count)
+	}
+	return count
+}
+
+func getExerciseByNameData(id, name string) []int64 {
+	var workouts []models.Workout
+	var data []int64
+	query := `select workout from workouts where id=$1 and date_part('year', date) = date_part('year', CURRENT_DATE) ORDER BY date;`
+
+	results, err := Repo.DB.Query(query, id)
+
+	if err != nil {
+		log.Fatalln("could not get exercise by name")
+	}
+	defer results.Close()
+
+	for results.Next() {
+		results.Scan(&workouts)
+	}
+
+	for _, wkout := range workouts {
+		if wkout.Description == name {
+			data = append(data, wkout.Weight)
+		}
+	}
+	return data
 }
 
 func updateGymEntry(r *http.Request, gym models.GymSession) error {

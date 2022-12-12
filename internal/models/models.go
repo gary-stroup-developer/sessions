@@ -45,11 +45,20 @@ type GymLog struct {
 	Date    string    `json:"date"`
 }
 
-type Data struct {
-	Data         interface{}
-	ErrorMessage map[string]string
+type Chart struct {
+	Label      string
+	Labels     []string
+	DataPoints []int64
 }
 
+type Data struct {
+	Data         interface{}
+	User         UserInfo
+	ErrorMessage string
+	ChartData    Chart
+}
+
+//used to collect info from updating workout info
 type FormData struct {
 	Description []string `json:"description"`
 	Sets        []string `json:"sets"`

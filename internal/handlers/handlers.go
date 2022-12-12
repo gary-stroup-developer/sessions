@@ -48,6 +48,7 @@ func Index(w http.ResponseWriter, req *http.Request) {
 
 //works fine but needs to be completed
 func Dashboard(w http.ResponseWriter, req *http.Request) {
+	var data models.Data
 
 	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
@@ -56,7 +57,19 @@ func Dashboard(w http.ResponseWriter, req *http.Request) {
 
 	u := sessions.GetUser(req, Repo.DbUsers)
 
-	Repo.Template.ExecuteTemplate(w, "dashboard.gohtml", u)
+	if req.Method == http.MethodPost {
+		exercise := req.PostForm.Get("exercise")
+		totalCount := totalWorkoutCount(u.ID)
+		exerciseData := getExerciseByNameData(u.ID, exercise)
+
+		data.Data = totalCount
+		data.ChartData.DataPoints = exerciseData
+		data.ChartData.Label = exercise
+		data.User = u
+
+	}
+
+	Repo.Template.ExecuteTemplate(w, "dashboard.gohtml", data)
 }
 
 //works fine
@@ -165,7 +178,7 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			data.ErrorMessage["message"] = "workout not logged in bro!"
+			data.ErrorMessage = "workout not logged in bro!"
 			return
 		}
 		workout, _ := json.Marshal(&wkout)
@@ -174,7 +187,7 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 		err = InsertGymSession(workout, u.ID)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			data.ErrorMessage["message"] = "Sorry. Unable to record gym session. Please try again"
+			data.ErrorMessage = "Sorry. Unable to record gym session. Please try again"
 			return
 		}
 

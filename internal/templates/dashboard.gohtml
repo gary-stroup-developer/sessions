@@ -11,9 +11,11 @@
   <p><a href="/session/entry">Log in a new workout!</a></p>
 </div>
 <select id="select" class="form-select" aria-label="Default select example">
-  <option value="1">One</option>
-  <option value="2">Two</option>
-  <option value="3">Three</option>
+  <datalist id="exercises">
+    <option value="1">One</option>
+    <option value="2">Two</option>
+    <option value="3">Three</option>
+  </datalist>
 </select>
 <div class="chart-container" style="position: relative; height:80vh; width:90vw">
   <canvas id="myChart"></canvas>
@@ -24,9 +26,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
 <script>
   const ctx = document.getElementById('myChart');
-
+  var labels = []
   new Chart(ctx, {
-    type: 'bar',
+    type: 'line',
     data: {
       labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
       datasets: [{
