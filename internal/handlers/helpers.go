@@ -191,3 +191,83 @@ func deleteGymEntry(r *http.Request, s string) error {
 
 	return nil
 }
+
+// **********************************************************************************************************************************
+// SELECT workout, extract(year from "date") as YEAR,
+// extract(MONTH from "date") as MONTH,
+// extract(DAY from "date") as DAY
+// FROM public.workouts
+// where userid = $1 ='15fdfe2f-177f-4ff7-b97b-61d7e691ea3d'
+// order by month,day;
+
+// func getChartData(id string, name string) []int64 {
+// 	var workouts []models.Workout
+
+// 	var year string
+// 	var month string
+// 	var day string
+
+// 	var data []int64
+
+// 	monthlyQuery := `SELECT workout, extract(year from "date") as YEAR,
+// 			  extract(MONTH from "date") as MONTH,
+// 			  extract(DAY from "date") as DAY
+// 			  FROM public.workouts
+// 			  where userid = $1 and extract(MONTH from "date") = $2 and extract(year from "date") = $3
+// 			  order by month,day;`
+
+// 	annualQuery := `SELECT workout, extract(year from "date") as YEAR,
+// 			  extract(MONTH from "date") as MONTH,
+// 			  extract(DAY from "date") as DAY
+// 			  FROM public.workouts
+// 			  where userid = $1 and extract(year from "date") = $2
+// 			  order by month,day;`
+// 	weeklyQuery := `SELECT workout, extract(year from "date") as YEAR,
+// 			  extract(MONTH from "date") as MONTH,
+// 			  extract(DAY from "date") as DAY
+// 			  FROM public.workouts
+// 			  where userid = $1 and extract(MONTH from "date") = $2 and extract(year from "date") = $3
+// 			  and extract(DAY from "date") <= $4 and extract(DAY from "date") >= $5
+// 			  order by day;`
+
+// 	results, err := Repo.DB.Query(query, id)
+
+// 	if err != nil {
+// 		log.Fatalln("could not get exercise by name")
+// 	}
+// 	defer results.Close()
+
+// 	for results.Next() {
+// 		results.Scan(&workouts, &year, &month, &day)
+// 	}
+
+// 	for _, wkout := range workouts {
+// 		if wkout.Description == name {
+// 			data = append(data, wkout.Weight)
+// 		}
+// 	}
+// 	return data
+// }
+
+// workout                                                                                                                                                                       |year|month|day|
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----+-----+---+
+// [{"description":"Leg Press","sets":5,"reps":5,"weight":360},{"description":"Squats","sets":5,"reps":5,"weight":225},{"description":"deadlift","sets":5,"reps":5,"weight":405}]|2022|    9|  1|
+// [{"description":"Leg Press","sets":5,"reps":5,"weight":360},{"description":"Squats","sets":5,"reps":5,"weight":225},{"description":"deadlift","sets":5,"reps":5,"weight":405}]|2022|   10| 12|
+// [{"description":"Leg Press","sets":5,"reps":5,"weight":360},{"description":"Squats","sets":5,"reps":5,"weight":225},{"description":"deadlift","sets":5,"reps":5,"weight":405}]|2022|   10| 25|
+// [{"description":"Leg Press","sets":5,"reps":5,"weight":360},{"description":"Squats","sets":5,"reps":5,"weight":225},{"description":"deadlift","sets":5,"reps":5,"weight":405}]|2022|   11| 15|
+// [{"description":"Leg Press","sets":5,"reps":5,"weight":360},{"description":"Squats","sets":5,"reps":5,"weight":225},{"description":"deadlift","sets":5,"reps":5,"weight":405}]|2022|   12|  7|
+// [{"description":"Leg Press","sets":5,"reps":5,"weight":360},{"description":"Squats","sets":5,"reps":5,"weight":225},{"description":"deadlift","sets":5,"reps":5,"weight":405}]|2022|   12| 10|
+// [{"description":"deadlift","sets":5,"reps":5,"weight":375},{"description":"Pull-ups","sets":5,"reps":10,"weight":0},{"description":"OHP","sets":8,"reps":8,"weight":185}]     |2022|   12| 12|
+// ***********************************************************************************************************************************
+
+// `SELECT workout, extract(year from "date") as YEAR,
+// 			  extract(MONTH from "date") as MONTH,
+// 			  extract(DAY from "date") as DAY
+// 			  FROM public.workouts
+// 			  where userid = $1 and extract(MONTH from "date") = $2
+// 			  order by month,day;`
+
+// workout                                                                                                                                                                       |year|month|day|
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----+-----+---+
+// [{"description":"Leg Press","sets":5,"reps":5,"weight":360},{"description":"Squats","sets":5,"reps":5,"weight":225},{"description":"deadlift","sets":5,"reps":5,"weight":405}]|2022|   10| 12|
+// [{"description":"Leg Press","sets":5,"reps":5,"weight":360},{"description":"Squats","sets":5,"reps":5,"weight":225},{"description":"deadlift","sets":5,"reps":5,"weight":405}]|2022|   10| 25|
