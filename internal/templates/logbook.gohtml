@@ -15,12 +15,12 @@
   <div class="accordion" id="accordionExample">
   {{range .}}
     <div class="accordion-item">
-      <h2 class="accordion-header" id="heading-{{.Index}}">
-        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{.Index}}" aria-expanded="true" aria-controls="{{.Index}}">
+      <h2 class="accordion-header" id="heading-{{.ID}}">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{.ID}}" aria-expanded="true" aria-controls="{{.Index}}">
           {{.Date}}
         </button>
       </h2>
-      <div id="collapse-{{.Index}}" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+      <div id="collapse-{{.ID}}" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
         <div class="accordion-body">
               <form id="table-{{.ID}}">
               <table class="table table-info table-hover">
@@ -54,8 +54,6 @@
   {{end}}
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
 
 <script>
 

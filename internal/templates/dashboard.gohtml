@@ -3,7 +3,7 @@
 {{template "navbar"}}
 
 <div class="container">
-    <h2 class="mb-4">{{.Data.User.First}}</h2>
+    <h2 class="mb-4">{{.User.First}}</h2>
     <p class="mb-3">Total Workouts for 2022: 65</p>
     <p>Let's break the numbers down by exercise</p>
 </div>
@@ -25,27 +25,45 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
 <script>
-  const ctx = document.getElementById('myChart');
-  var labels = []
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-      datasets: [{
-        label: '# of workouts',
-        data: [12, 19, 3, 5, 2, 3],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
+
+var ctx = document.getElementById("myChart").getContext("2d");
+
+var data = {
+    labels: ["Jan", "Feb", "Mar","Apr","May","Jun"],
+    datasets: [
+        {
+            label: "OHP",
+            backgroundColor: "#CC40CC",
+            data: [115,125,145,155,165,165]
+        },
+        {
+            label: "Bench Press",
+            backgroundColor: "#CCBB00",
+            data: [145,155,175,185,205,215]
+        },
+        {
+            label: "Squat",
+            backgroundColor: "#9BD0F5",
+            data: [115,145,155,175,185,225]
         }
-      },
-      responsive: true
+    ],
+    borderWidth: 1
+};
+
+var myBarChart = new Chart(ctx, {
+    type: 'bar',
+    data: data,
+    options: {
+        barValueSpacing: 20,
+        responsive: true,
+        scales: {
+            y: {
+          beginAtZero: true
+          }
+        }
     }
-  });
+});
+
 </script>
 
 {{template "footer"}}

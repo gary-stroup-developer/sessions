@@ -56,7 +56,7 @@ func Dashboard(w http.ResponseWriter, req *http.Request) {
 	}
 
 	u := sessions.GetUser(req, Repo.DbUsers)
-
+	data.User = u
 	if req.Method == http.MethodPost {
 		exercise := req.PostForm.Get("exercise")
 		totalCount := totalWorkoutCount(u.ID)
@@ -65,7 +65,6 @@ func Dashboard(w http.ResponseWriter, req *http.Request) {
 		data.Data = totalCount
 		data.ChartData.DataPoints = exerciseData
 		data.ChartData.Label = exercise
-		data.User = u
 
 	}
 
