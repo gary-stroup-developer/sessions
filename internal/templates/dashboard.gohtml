@@ -25,11 +25,40 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
 <script>
+function CheckError(response) {
+    if (response.status >= 200 && response.status <= 299) {
+      return response.json();
+    } else {
+      throw Error(response.statusText);
+    }
+  }
+window.onload = function() {getKeys()};
+
+function getKeys() {
+
+  fetch('/user/dashboard/keys',{
+      headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+      },
+      method:'GET',
+    }).then(CheckError)
+      .then(response => {
+        var dropDown = document.getElementById("exercises")
+        
+        for(let i = 0; i < response.length; i++){
+          let newOption = new Option(response[i],response[i]);
+          dropDown.add(newOption,undefined);
+        }
+
+      }).catch((error) => {
+          return alert(error.message)
+      });
+}
 
 var ctx = document.getElementById("myChart").getContext("2d");
 
 var data = {
-    labels: ["Jan", "Feb", "Mar","Apr","May","Jun"],
+    labels: ["Jan", "Feb", "Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
     datasets: [
         {
             label: "OHP",

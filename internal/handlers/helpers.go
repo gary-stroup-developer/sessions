@@ -55,9 +55,9 @@ func logUserIn(un string, p string) (models.UserInfo, error) {
 	return models.UserInfo{ID: u.ID, UserName: u.UserName, First: u.First, Last: u.Last}, nil
 }
 
-func logWorkout(desc []string, sets []string, reps []string, weight []string) ([]models.Workout, error) {
+func logWorkout(desc []string, sets []string, reps []string, weight []string) (map[string]models.Workout, error) {
 	var i = 0
-	var m []models.Workout
+	var m = make(map[string]models.Workout)
 
 	for i < len(desc) {
 		//convert the string data from post request to int64 & check for error
@@ -78,12 +78,12 @@ func logWorkout(desc []string, sets []string, reps []string, weight []string) ([
 		}
 
 		//no errors then the workout can be populated
-		m = append(m, models.Workout{
+		m[desc[i]] = models.Workout{
 			Description: desc[i],
 			Sets:        s,
 			Reps:        r,
 			Weight:      w,
-		})
+		}
 		i++
 	}
 	return m, nil
@@ -106,28 +106,17 @@ func InsertGymSession(wo []byte, userid string) error {
 	return nil
 }
 
-func readGymEntry(r *http.Request, s string) models.GymSession {
-
-	var wo models.GymSession
-	//Step 3: search database for workout with that id
-	query := `select * from workouts where id=$1`
-
-	//need to create gymSession variable
-
-	Repo.DB.QueryRow(query, s).Scan(&wo)
-
-	return wo
-}
-
 func totalWorkoutCount(id string) int64 {
 
 	var count int64
+	year := strconv.Itoa(time.Now().UTC().Year())
+
 	//Step 3: search database for workout with that id
-	query := `select count(*) from workouts where id=$1 and date_part('year', date) = date_part('year', CURRENT_DATE);`
+	query := `select count(*) from workouts where userid=$1 and extract(year from "date") = $2;`
 
 	//need to create gymSession variable
 
-	result, _ := Repo.DB.Query(query, id)
+	result, _ := Repo.DB.Query(query, id, year)
 
 	defer result.Close()
 
@@ -138,11 +127,17 @@ func totalWorkoutCount(id string) int64 {
 }
 
 func getExerciseByNameData(id, name string) []int64 {
-	var workouts []models.Workout
-	var data []int64
-	query := `select workout from workouts where id=$1 and date_part('year', date) = date_part('year', CURRENT_DATE) ORDER BY date;`
 
-	results, err := Repo.DB.Query(query, id)
+	var data []int64
+
+	year := strconv.Itoa(time.Now().UTC().Year())
+	month := time.Now().UTC().Month().String()
+
+	query := `SELECT workout -> $1 ->> 'weight' as weight
+			  FROM workouts
+			  WHERE userid=$2 and extract(year from "date") = $3 and extract(Month from "date") = $4;`
+
+	results, err := Repo.DB.Query(query, id, name, year, month)
 
 	if err != nil {
 		log.Fatalln("could not get exercise by name")
@@ -150,14 +145,9 @@ func getExerciseByNameData(id, name string) []int64 {
 	defer results.Close()
 
 	for results.Next() {
-		results.Scan(&workouts)
+		results.Scan(&data)
 	}
 
-	for _, wkout := range workouts {
-		if wkout.Description == name {
-			data = append(data, wkout.Weight)
-		}
-	}
 	return data
 }
 
@@ -271,3 +261,18 @@ func deleteGymEntry(r *http.Request, s string) error {
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----+-----+---+
 // [{"description":"Leg Press","sets":5,"reps":5,"weight":360},{"description":"Squats","sets":5,"reps":5,"weight":225},{"description":"deadlift","sets":5,"reps":5,"weight":405}]|2022|   10| 12|
 // [{"description":"Leg Press","sets":5,"reps":5,"weight":360},{"description":"Squats","sets":5,"reps":5,"weight":225},{"description":"deadlift","sets":5,"reps":5,"weight":405}]|2022|   10| 25|
+
+///////////////////////////////////////////////////
+
+// SELECT json_object_keys (workout) as keys
+// FROM workouts
+// WHERE userid=$1 and extract(year from "date") = $2 and extract(MONTH from "date") = $3
+// group by keys;
+
+// keys           |
+// ---------------+
+// Squats         |
+// OHP            |
+// Deadlift       |
+// Leg Press      |
+// Hamstring Curls|

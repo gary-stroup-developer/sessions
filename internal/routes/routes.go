@@ -17,6 +17,8 @@ func Routes(r *http.ServeMux) {
 	r.HandleFunc("/user/session/edit/", handlers.EditWorkoutEntry)
 	r.HandleFunc("/user/session/delete/", handlers.DeleteWorkoutEntry)
 
+	r.HandleFunc("/user/dashboard/keys", handlers.GetKeys)
+
 	r.Handle("/favicon.ico", http.NotFoundHandler())
 
 	fileServer := http.FileServer(http.Dir("./static/"))

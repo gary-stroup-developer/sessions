@@ -38,11 +38,10 @@ type GymSession struct {
 }
 
 type GymLog struct {
-	ID      string    `json:"id"`
-	Index   string    `json:"index"`
-	Workout []Workout `json:"workout"`
-	UserID  string    `json:"userID"`
-	Date    string    `json:"date"`
+	ID      string             `json:"id"`
+	Workout map[string]Workout `json:"workout"`
+	UserID  string             `json:"userID"`
+	Date    string             `json:"date"`
 }
 
 type Chart struct {
@@ -53,6 +52,8 @@ type Chart struct {
 
 type Data struct {
 	Data         interface{}
+	Keys         []string
+	Count        int64
 	User         UserInfo
 	ErrorMessage string
 	ChartData    Chart

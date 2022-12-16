@@ -3,14 +3,15 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"gary-stroup-developer/sessions/internal/models"
 	"gary-stroup-developer/sessions/internal/sessions"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -57,18 +58,68 @@ func Dashboard(w http.ResponseWriter, req *http.Request) {
 
 	u := sessions.GetUser(req, Repo.DbUsers)
 	data.User = u
+
+	var chartPoints = make([]int64, 12)
+	var labels []string
+
+	totalCount := totalWorkoutCount(u.ID)
+
+	if totalCount == 0 {
+		data.ChartData.DataPoints = append(chartPoints, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+		data.ChartData.Labels = append(labels, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+	}
+	data.Count = totalCount
+
 	if req.Method == http.MethodPost {
 		exercise := req.PostForm.Get("exercise")
-		totalCount := totalWorkoutCount(u.ID)
+
 		exerciseData := getExerciseByNameData(u.ID, exercise)
 
-		data.Data = totalCount
+		for i := 0; i < len(exerciseData); i++ {
+			data.ChartData.Labels = append(data.ChartData.Labels, strconv.Itoa(i))
+		}
+
 		data.ChartData.DataPoints = exerciseData
 		data.ChartData.Label = exercise
 
 	}
 
 	Repo.Template.ExecuteTemplate(w, "dashboard.gohtml", data)
+}
+
+func GetKeys(w http.ResponseWriter, req *http.Request) {
+	year := strconv.Itoa(time.Now().UTC().Year())
+	month := time.Now().UTC().Month().String()
+
+	data := models.Data{}
+
+	u := sessions.GetUser(req, Repo.DbUsers)
+	id := u.ID
+
+	var keys []string
+
+	query := `SELECT json_object_keys (workout) as keys
+			  FROM workouts
+			  WHERE userid=$1 and extract(year from "date") = $2 and extract(MONTH from "date") = $3
+			  group by keys;`
+
+	results, err := Repo.DB.Query(query, id, year, month)
+
+	if err != nil {
+		http.Error(w, "something went wrong querying the DB", http.StatusBadRequest)
+	}
+	defer results.Close()
+
+	for results.Next() {
+		results.Scan(&keys)
+	}
+
+	data.Keys = keys
+
+	w.WriteHeader(http.StatusOK)
+	resp, _ := json.Marshal(data.Keys)
+	w.Write(resp)
 }
 
 //works fine
@@ -171,7 +222,7 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodPost {
 		//parse th form data
 		req.ParseForm()
-		log.Println(req.Form["description"], req.Form["sets"], req.Form["reps"], req.Form["weight"])
+
 		//parse each field into []Workout
 		wkout, err := logWorkout(req.Form["description"], req.Form["sets"], req.Form["reps"], req.Form["weight"])
 
@@ -235,14 +286,13 @@ func LogBook(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		var workout []models.Workout
+		var workout map[string]models.Workout
 
 		err = json.Unmarshal(wkout.Workout, &workout)
 		if err != nil {
 			log.Fatalln(err)
 		}
 		data.ID = wkout.ID
-		data.Index = strings.Split(wkout.ID, "-")[0]
 		data.Workout = workout
 		data.UserID = wkout.UserID
 		data.Date = strings.Split(wkout.Date.String(), " ")[0]
@@ -250,33 +300,9 @@ func LogBook(w http.ResponseWriter, req *http.Request) {
 		gymSession = append(gymSession, data)
 
 	}
+
 	//Step 4: send data to template
 	Repo.Template.ExecuteTemplate(w, "logbook.gohtml", gymSession)
-}
-
-func WorkoutEntry(w http.ResponseWriter, req *http.Request) {
-	//Step 1: check to see if logged in
-	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
-		http.Redirect(w, req, "/", http.StatusSeeOther)
-		return
-	}
-	//Step 2: get id from url
-	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
-	gymID := req.URL.Query()["id"][0]
-
-	var workoutSession models.GymSession
-	var data models.Data
-
-	if gymID == "" {
-		http.Error(w, "Unable to retreive gym entry", http.StatusBadRequest)
-		return
-	}
-
-	workoutSession = readGymEntry(req, gymID)
-	data.Data = workoutSession
-	//Step 4: send data to template
-	Repo.Template.ExecuteTemplate(w, "viewEntry.gohtml", data)
-
 }
 
 func EditWorkoutEntry(w http.ResponseWriter, req *http.Request) {
@@ -296,7 +322,6 @@ func EditWorkoutEntry(w http.ResponseWriter, req *http.Request) {
 			log.Println("no body found")
 		}
 
-		fmt.Println(data)
 		// parse each field into []Workout
 		workout, err := logWorkout(data.Description, data.Sets, data.Reps, data.Weight)
 
@@ -333,7 +358,6 @@ func DeleteWorkoutEntry(w http.ResponseWriter, req *http.Request) {
 	//Step 2: get id from url
 	// id, _ := url.Parse("http://localhost:8080/workout/?id=55")
 	gymID := req.URL.Query()["id"][0]
-	log.Println(gymID)
 
 	if req.Method == http.MethodDelete {
 		err := deleteGymEntry(req, gymID)
