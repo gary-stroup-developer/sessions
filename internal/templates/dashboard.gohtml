@@ -4,19 +4,26 @@
 
 <div class="container">
     <h2 class="mb-4">{{.User.First}}</h2>
-    <p class="mb-3">Total Workouts for 2022: 65</p>
+    <p class="mb-3">Total Workouts for 2022: {{.Count}}</p>
     <p>Let's break the numbers down by exercise</p>
+
+    <p id="testing-return"></p>
+
 </div>
 <div>
   <p><a href="/session/entry">Log in a new workout!</a></p>
 </div>
 <select id="select" class="form-select" aria-label="Default select example">
   <datalist id="exercises">
-    <option value="1">One</option>
-    <option value="2">Two</option>
-    <option value="3">Three</option>
+    <option value="OHP">OHP</option>
+    <option value="Bench Press">Bench Press</option>
+    <option value="Decline Bench Press">Decline Bench Press</option>
+    <option value="Incline Bench Press">Incline Bench Press</option>
+    <option value="Squats">Squats</option>
+    <option value="Deadlift">Deadlift</option>
   </datalist>
 </select>
+
 <div class="chart-container" style="position: relative; height:80vh; width:90vw">
   <canvas id="myChart"></canvas>
 </div>
@@ -25,42 +32,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
 <script>
-function CheckError(response) {
-    if (response.status >= 200 && response.status <= 299) {
-      return response.json();
-    } else {
-      throw Error(response.statusText);
-    }
-  }
-window.onload = function() {getKeys()};
-
-function getKeys() {
-
-  fetch('/user/dashboard/keys',{
-      headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-      },
-      method:'GET',
-    }).then(CheckError)
-      .then(response => {
-        var dropDown = document.getElementById("exercises")
-        
-        for(let i = 0; i < response.length; i++){
-          let newOption = new Option(response[i],response[i]);
-          dropDown.add(newOption,undefined);
-        }
-
-      }).catch((error) => {
-          return alert(error.message)
-      });
-}
-
-var ctx = document.getElementById("myChart").getContext("2d");
 
 var data = {
-    labels: ["Jan", "Feb", "Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    labels: [],
     datasets: [
-        {
+        {{/* {
             label: "OHP",
             backgroundColor: "#CC40CC",
             data: [115,125,145,155,165,165]
@@ -70,14 +46,62 @@ var data = {
             backgroundColor: "#CCBB00",
             data: [145,155,175,185,205,215]
         },
-        {
-            label: "Squat",
-            backgroundColor: "#9BD0F5",
-            data: [115,145,155,175,185,225]
-        }
+         */}}
     ],
     borderWidth: 1
 };
+
+
+function CheckError(response) {
+    if (response.status >= 200 && response.status <= 299) {
+      return response.json();
+    } else {
+      throw Error(response.statusText);
+    }
+  }
+
+document.getElementById("select").addEventListener('change', (event) => {
+  data.labels = [];
+  data.datasets = [];
+  var target = event.target.value
+  fetch(`/dashboard/?exercise=${target}`,{
+      headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+      },
+      method:'POST',
+      body: JSON.stringify(event.target.value)
+    }).then(CheckError)
+      .then(response => {
+        var m = document.getElementById("testing-return")
+        for(i = 0;i < response.message.length ;i++){
+          data.labels.push(String(i))  
+        }
+        var dataValues = []
+
+        response.message.forEach((val) => {
+              dataValues.push(val)
+        });
+
+        data.datasets.push({
+              label: `${target}`,
+              backgroundColor: "#9BD0F5",
+              data: dataValues
+        });
+        
+        
+        
+        return m.innerHTML = response.message.length;
+
+      }).catch((error) => {
+          var m = document.getElementById("testing-return")
+          return m.innerHTML = "";
+      });
+});
+
+
+var ctx = document.getElementById("myChart").getContext("2d");
+
+
 
 var myBarChart = new Chart(ctx, {
     type: 'bar',

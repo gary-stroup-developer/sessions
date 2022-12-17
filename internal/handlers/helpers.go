@@ -126,18 +126,21 @@ func totalWorkoutCount(id string) int64 {
 	return count
 }
 
-func getExerciseByNameData(id, name string) []int64 {
+func getExerciseByNameData(id, name string) []string {
 
-	var data []int64
+	var data []string
+
+	var weight string
 
 	year := strconv.Itoa(time.Now().UTC().Year())
-	month := time.Now().UTC().Month().String()
+	monthNum := int(time.Now().UTC().Month())
+	month := strconv.Itoa(monthNum)
 
 	query := `SELECT workout -> $1 ->> 'weight' as weight
 			  FROM workouts
-			  WHERE userid=$2 and extract(year from "date") = $3 and extract(Month from "date") = $4;`
+			  WHERE workout -> $2 notnull and userid=$3 and extract(year from "date") = $4 and extract(Month from "date") = $5;`
 
-	results, err := Repo.DB.Query(query, id, name, year, month)
+	results, err := Repo.DB.Query(query, name, name, id, year, month)
 
 	if err != nil {
 		log.Fatalln("could not get exercise by name")
@@ -145,7 +148,8 @@ func getExerciseByNameData(id, name string) []int64 {
 	defer results.Close()
 
 	for results.Next() {
-		results.Scan(&data)
+		results.Scan(&weight)
+		data = append(data, weight)
 	}
 
 	return data

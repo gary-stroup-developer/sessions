@@ -9,9 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -72,54 +70,38 @@ func Dashboard(w http.ResponseWriter, req *http.Request) {
 	data.Count = totalCount
 
 	if req.Method == http.MethodPost {
-		exercise := req.PostForm.Get("exercise")
+		exercise := req.URL.Query()["exercise"][0]
+		log.Println(exercise)
 
+		if exercise == "" {
+
+			http.Error(w, "unsuccessful attempt to get exercise name data", http.StatusBadRequest)
+
+			return
+
+		}
 		exerciseData := getExerciseByNameData(u.ID, exercise)
 
-		for i := 0; i < len(exerciseData); i++ {
-			data.ChartData.Labels = append(data.ChartData.Labels, strconv.Itoa(i))
+		if len(exerciseData) == 0 {
+
+			http.Error(w, "jsonResp is zero", http.StatusBadRequest)
+
+			return
 		}
 
-		data.ChartData.DataPoints = exerciseData
-		data.ChartData.Label = exercise
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
 
+		m := map[string][]string{
+			"message": exerciseData,
+		}
+
+		jsonResp, _ := json.Marshal(m)
+		w.Write(jsonResp)
+		return
 	}
 
 	Repo.Template.ExecuteTemplate(w, "dashboard.gohtml", data)
-}
-
-func GetKeys(w http.ResponseWriter, req *http.Request) {
-	year := strconv.Itoa(time.Now().UTC().Year())
-	month := time.Now().UTC().Month().String()
-
-	data := models.Data{}
-
-	u := sessions.GetUser(req, Repo.DbUsers)
-	id := u.ID
-
-	var keys []string
-
-	query := `SELECT json_object_keys (workout) as keys
-			  FROM workouts
-			  WHERE userid=$1 and extract(year from "date") = $2 and extract(MONTH from "date") = $3
-			  group by keys;`
-
-	results, err := Repo.DB.Query(query, id, year, month)
-
-	if err != nil {
-		http.Error(w, "something went wrong querying the DB", http.StatusBadRequest)
-	}
-	defer results.Close()
-
-	for results.Next() {
-		results.Scan(&keys)
-	}
-
-	data.Keys = keys
-
-	w.WriteHeader(http.StatusOK)
-	resp, _ := json.Marshal(data.Keys)
-	w.Write(resp)
 }
 
 //works fine
@@ -164,7 +146,7 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 		//bind session cookie with user
 		Repo.DbUsers[c.Value] = u
 
-		http.Redirect(w, req, "/dashboard", http.StatusSeeOther)
+		http.Redirect(w, req, "/dashboard/", http.StatusSeeOther)
 		return
 	}
 
@@ -201,7 +183,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 
 		Repo.DbUsers[c.Value] = u
 
-		http.Redirect(w, req, "/dashboard", http.StatusSeeOther)
+		http.Redirect(w, req, "/dashboard/", http.StatusSeeOther)
 		return
 	}
 
@@ -247,7 +229,7 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 		}
 		log.Println(wkout)
 
-		http.Redirect(w, req, "/dashboard", http.StatusSeeOther)
+		http.Redirect(w, req, "/dashboard/", http.StatusSeeOther)
 		return
 	}
 
