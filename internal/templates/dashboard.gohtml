@@ -6,40 +6,51 @@
     <h2 class="mb-4">{{.User.First}}</h2>
     <p class="mb-3">Total Workouts for 2022: {{.Count}}</p>
     <p>Let's break the numbers down by exercise</p>
-
-    <p id="testing-return"></p>
+</div>
+<div class="container">
+  <h2><a style="text-decoration:none; color:#333;" href="/session/entry">Log in a new workout!</a></h2>
+  <div class="col-md-8">
+    <select id="select" class="form-select" aria-label="Default select example">
+      <datalist id="exercises">
+        <option>View Results for main lift</option>
+        <option value="OHP">OHP</option>
+        <option value="Bench Press">Bench Press</option>
+        <option value="Decline Bench Press">Decline Bench Press</option>
+        <option value="Incline Bench Press">Incline Bench Press</option>
+        <option value="Squats">Squats</option>
+        <option value="Front Squats">Front Squats</option>
+        <option value="Deadlift">Deadlift</option>
+        <option value="Romanian Deadlift">Romanian Deadlift</option>
+        <option value="Pullups">Pullups</option>
+        <option value="Lat Pulldown">Lat Pulldown</option>
+        <option value="Bicep Curl">Bicep Curl</option>
+        <option value="Dips">Dips</option>
+        <option value="Hamstring Curl">Hamstring Curl</option>
+      </datalist>
+    </select>
+  </div>
+  <div class="col-md-9 chart-container" style="position: relative; height:80vh; width:90vw">
+    <h3 style="margin:10px 0;">Monthly Results</h3>
+    <p style="margin:10px 0; color:red; font-size: 21px;" id="testing-return"></p>
+    <canvas id="myChart"></canvas>
+  </div>
 
 </div>
-<div>
-  <p><a href="/session/entry">Log in a new workout!</a></p>
-</div>
-<select id="select" class="form-select" aria-label="Default select example">
-  <datalist id="exercises">
-    <option>View Results for selected lift</option>
-    <option value="OHP">OHP</option>
-    <option value="Bench Press">Bench Press</option>
-    <option value="Decline Bench Press">Decline Bench Press</option>
-    <option value="Incline Bench Press">Incline Bench Press</option>
-    <option value="Squats">Squats</option>
-    <option value="Deadlift">Deadlift</option>
-  </datalist>
-</select>
-
-<div class="chart-container" style="position: relative; height:80vh; width:90vw">
-  <h3 style="margin:10px 0;">Monthly Results</h3>
-  <canvas id="myChart"></canvas>
-</div>
-
-
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
 <script>
+
+
 let labels = [];
 let datasets = [];
 
+var errorMessage = document.getElementById("testing-return")
+
 var ctx = document.getElementById("myChart").getContext("2d");
+
 var chartArea = document.getElementById("myChart")
 chartArea.style.display = "none";
+
 var data = {
           labels: labels,
           datasets: datasets,
@@ -79,7 +90,7 @@ document.getElementById("select").addEventListener('change', (event) => {
       method:'POST'
     }).then(CheckError)
       .then(response => {
-        
+        errorMessage.innerHTML = "";
         labels=[];
         datasets = [];
         var dataValues = []
@@ -103,15 +114,11 @@ document.getElementById("select").addEventListener('change', (event) => {
         myBarChart.update()
         
       }).catch((error) => {
-          var m = document.getElementById("testing-return")
-          return m.innerHTML = error.message;
+          chartArea.style.display = "none";
+          return errorMessage.innerHTML = "You have not recorded this exercise this month";
       });
 });
 
-function createChart(data){
-
-
-}
 
 </script>
 

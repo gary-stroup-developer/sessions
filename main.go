@@ -27,6 +27,12 @@ func main() {
 	var user = os.Getenv("USER")
 	var dbname = os.Getenv("DB")
 
+	port, ok := os.LookupEnv("PORT")
+
+	if !ok {
+		port = "80"
+	}
+
 	var postgresqlDbInfo = fmt.Sprintf("host=localhost port=5432 user=%s "+
 		"password=%s dbname=%s",
 		user, pass, dbname)
@@ -41,5 +47,5 @@ func main() {
 	handlers.SetRepo(repo)
 	routes.Routes(server)
 
-	log.Fatal(http.ListenAndServe(":8080", server))
+	log.Fatal(http.ListenAndServe(":"+port, server))
 }

@@ -9,6 +9,7 @@ func Routes(r *http.ServeMux) {
 	r.HandleFunc("/", handlers.Index)
 	r.HandleFunc("/signup", handlers.Signup)
 	r.HandleFunc("/signin", handlers.Login)
+	r.HandleFunc("/user/signout", handlers.SignOut)
 
 	r.HandleFunc("/dashboard/", handlers.Dashboard)
 	r.HandleFunc("/logbook", handlers.LogBook)          //view all workout entries

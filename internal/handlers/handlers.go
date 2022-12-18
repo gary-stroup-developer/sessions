@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -190,6 +191,25 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	Repo.Template.ExecuteTemplate(w, "login.gohtml", nil)
 }
 
+func SignOut(w http.ResponseWriter, req *http.Request) {
+	c, err := req.Cookie("session")
+
+	if err != nil {
+		http.Error(w, "trouble signing user out", http.StatusInternalServerError)
+	}
+	Repo.DbUsers[c.Value] = models.UserInfo{}
+
+	expire := time.Now().Add(-1 * 5 * time.Hour)
+	c = &http.Cookie{
+		Name:    "",
+		Value:   "",
+		Expires: expire,
+	}
+
+	http.SetCookie(w, c)
+	http.Redirect(w, req, "/", http.StatusSeeOther)
+}
+
 //works fine
 func GymSession(w http.ResponseWriter, req *http.Request) {
 	if !sessions.AlreadyLoggedIn(req, Repo.DbUsers) {
@@ -202,7 +222,7 @@ func GymSession(w http.ResponseWriter, req *http.Request) {
 	var data models.Data
 
 	if req.Method == http.MethodPost {
-		//parse th form data
+		//parse the form data
 		req.ParseForm()
 
 		//parse each field into []Workout

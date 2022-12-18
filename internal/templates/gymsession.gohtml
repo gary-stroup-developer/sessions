@@ -27,22 +27,10 @@
       </thead>
       <tbody id="session-entry">
         <tr>
-          <td><input type="text" class="form-control entry-input" id="description" name="description" placeholder="description" aria-describedby="exercise name"></td>
-          <td><input type="number" class="form-control entry-input" id="sets" name="sets" placeholder="# of sets" aria-describedby="exercise amount of sets"></td>
-          <td><input type="number" class="form-control entry-input" id="reps" name="reps" placeholder="# of reps" aria-describedby="exercise amount of reps"></td>
-          <td><input type="number" class="form-control entry-input" id="weight" name="weight" placeholder="# of lbs" aria-describedby="exercise amount of weight"></td>
-        </tr>
-         <tr>
-          <td><input type="text" class="form-control entry-input" id="description" name="description" placeholder="description" aria-describedby="exercise name"></td>
-          <td><input type="number" class="form-control entry-input" id="sets" name="sets" placeholder="# of sets" aria-describedby="exercise amount of sets"></td>
-          <td><input type="number" class="form-control entry-input" id="reps" name="reps" placeholder="# of reps" aria-describedby="exercise amount of reps"></td>
-          <td><input type="number" class="form-control entry-input" id="weight" name="weight" placeholder="# of lbs" aria-describedby="exercise amount of weight"></td>
-        </tr>
-        <tr>
-          <td><input type="text" class="form-control entry-input" id="description" name="description" placeholder="description" aria-describedby="exercise name"></td>
-          <td><input type="number" class="form-control entry-input" id="sets" name="sets" placeholder="# of sets" aria-describedby="exercise amount of sets"></td>
-          <td><input type="number" class="form-control entry-input" id="reps" name="reps" placeholder="# of reps" aria-describedby="exercise amount of reps"></td>
-          <td><input type="number" class="form-control entry-input" id="weight" name="weight" placeholder="# of lbs" aria-describedby="exercise amount of weight"></td>
+          <td><input type="text" class="form-control entry-input" name="description" placeholder="description" aria-describedby="exercise name"></td>
+          <td><input type="number" class="form-control entry-input" name="sets" placeholder="# of sets" aria-describedby="exercise amount of sets"></td>
+          <td><input type="number" class="form-control entry-input" name="reps" placeholder="# of reps" aria-describedby="exercise amount of reps"></td>
+          <td><input type="number" class="form-control entry-input" name="weight" placeholder="# of lbs" aria-describedby="exercise amount of weight"></td>
         </tr>
 
       </tbody>
@@ -64,21 +52,18 @@
 
         var desc = document.createElement('input');
         desc.type = 'text';
-        desc.id = 'description';
         desc.name = 'description';
         desc.className = 'form-control entry-input';
         desc.placeholder = "description"
 
         var sets = document.createElement('input');
         sets.type = 'number';
-        sets.id = 'sets';
         sets.name = 'sets';
         sets.className = 'form-control entry-input';
         sets.placeholder = "# of sets"
 
         var reps = document.createElement('input');
         reps.type = 'number';
-        reps.id = 'reps';
         reps.name = 'reps';
         reps.className = 'form-control entry-input';
         reps.placeholder = "# of reps"
