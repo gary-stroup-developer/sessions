@@ -15,6 +15,7 @@
 </div>
 <select id="select" class="form-select" aria-label="Default select example">
   <datalist id="exercises">
+    <option>View Results for selected lift</option>
     <option value="OHP">OHP</option>
     <option value="Bench Press">Bench Press</option>
     <option value="Decline Bench Press">Decline Bench Press</option>
@@ -25,6 +26,7 @@
 </select>
 
 <div class="chart-container" style="position: relative; height:80vh; width:90vw">
+  <h3 style="margin:10px 0;">Monthly Results</h3>
   <canvas id="myChart"></canvas>
 </div>
 
@@ -36,7 +38,8 @@ let labels = [];
 let datasets = [];
 
 var ctx = document.getElementById("myChart").getContext("2d");
-
+var chartArea = document.getElementById("myChart")
+chartArea.style.display = "none";
 var data = {
           labels: labels,
           datasets: datasets,
@@ -76,6 +79,7 @@ document.getElementById("select").addEventListener('change', (event) => {
       method:'POST'
     }).then(CheckError)
       .then(response => {
+        
         labels=[];
         datasets = [];
         var dataValues = []
@@ -93,6 +97,7 @@ document.getElementById("select").addEventListener('change', (event) => {
               backgroundColor: "#9BD0F5",
               data: dataValues
         });
+        chartArea.style.display = "block";
         myBarChart.data.labels = labels;
         myBarChart.data.datasets = datasets;
         myBarChart.update()
