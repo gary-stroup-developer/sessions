@@ -32,76 +32,16 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
 <script>
-
-var data = {
-    labels: [],
-    datasets: [
-        {{/* {
-            label: "OHP",
-            backgroundColor: "#CC40CC",
-            data: [115,125,145,155,165,165]
-        },
-        {
-            label: "Bench Press",
-            backgroundColor: "#CCBB00",
-            data: [145,155,175,185,205,215]
-        },
-         */}}
-    ],
-    borderWidth: 1
-};
-
-
-function CheckError(response) {
-    if (response.status >= 200 && response.status <= 299) {
-      return response.json();
-    } else {
-      throw Error(response.statusText);
-    }
-  }
-
-document.getElementById("select").addEventListener('change', (event) => {
-  data.labels = [];
-  data.datasets = [];
-  var target = event.target.value
-  fetch(`/dashboard/?exercise=${target}`,{
-      headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-      },
-      method:'POST',
-      body: JSON.stringify(event.target.value)
-    }).then(CheckError)
-      .then(response => {
-        var m = document.getElementById("testing-return")
-        for(i = 0;i < response.message.length ;i++){
-          data.labels.push(String(i))  
-        }
-        var dataValues = []
-
-        response.message.forEach((val) => {
-              dataValues.push(val)
-        });
-
-        data.datasets.push({
-              label: `${target}`,
-              backgroundColor: "#9BD0F5",
-              data: dataValues
-        });
-        
-        
-        
-        return m.innerHTML = response.message.length;
-
-      }).catch((error) => {
-          var m = document.getElementById("testing-return")
-          return m.innerHTML = "";
-      });
-});
-
+let labels = [];
+let datasets = [];
 
 var ctx = document.getElementById("myChart").getContext("2d");
 
-
+var data = {
+          labels: labels,
+          datasets: datasets,
+          borderWidth: 1
+};
 
 var myBarChart = new Chart(ctx, {
     type: 'bar',
@@ -116,6 +56,57 @@ var myBarChart = new Chart(ctx, {
         }
     }
 });
+
+function CheckError(response) {
+    if (response.status >= 200 && response.status <= 299) {
+      return response.json();
+    } else {
+      throw Error(response.statusText);
+    }
+  }
+
+document.getElementById("select").addEventListener('change', (event) => {
+
+  var target = event.target.value
+
+  fetch(`/dashboard/?exercise=${target}`,{
+      headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+      },
+      method:'POST'
+    }).then(CheckError)
+      .then(response => {
+        labels=[];
+        datasets = [];
+        var dataValues = []
+        
+        for(i = 0;i < response.message.length ;i++){
+          labels.push(String(i+1))  
+        }
+
+        response.message.forEach((val) => {
+              dataValues.push(val)
+        });
+
+        datasets.push({
+              label: `${target}`,
+              backgroundColor: "#9BD0F5",
+              data: dataValues
+        });
+        myBarChart.data.labels = labels;
+        myBarChart.data.datasets = datasets;
+        myBarChart.update()
+        
+      }).catch((error) => {
+          var m = document.getElementById("testing-return")
+          return m.innerHTML = error.message;
+      });
+});
+
+function createChart(data){
+
+
+}
 
 </script>
 
